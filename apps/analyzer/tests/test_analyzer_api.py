@@ -118,6 +118,35 @@ def test_local_brand_impersonation_in_url_is_detected():
 
 
 @pytest.mark.django_db
+def test_uzbek_language_returns_localized_reasons_and_privacy():
+    response = APIClient().post(
+        reverse("analyzer-sms"),
+        {
+            "text": "Zudlik bilan SMS kodni ayting va pul o'tkazing.",
+            "language": "uz",
+        },
+        format="json",
+    )
+
+    assert response.status_code == 200
+    assert response.data["verdict"] == AnalysisLog.Verdict.DANGEROUS
+    assert any("shoshilinch" in reason for reason in response.data["reasons"])
+    assert "Mazmun saqlanmadi" in response.data["privacy"]
+
+
+@pytest.mark.django_db
+def test_analyzer_rejects_unknown_language():
+    response = APIClient().post(
+        reverse("analyzer-url"),
+        {"url": "https://example.com", "language": "en"},
+        format="json",
+    )
+
+    assert response.status_code == 400
+    assert "language" in response.data["error"]["details"]
+
+
+@pytest.mark.django_db
 def test_analyzer_rate_limit():
     client = APIClient()
     for _ in range(10):

@@ -182,3 +182,35 @@ def test_another_user_cannot_submit_owned_session(questions, authenticated_clien
     )
 
     assert response.status_code == 400
+
+
+@pytest.mark.django_db
+def test_daily_quiz_is_reused_once_per_day_and_tracks_status(
+    questions,
+    authenticated_client,
+):
+    client, user = authenticated_client
+
+    first = client.post(reverse("quiz-daily"), {"language": "ru"}, format="json")
+    second = client.post(reverse("quiz-daily"), {"language": "ru"}, format="json")
+
+    assert first.status_code == 201
+    assert first.data["kind"] == QuizSession.Kind.DAILY
+    assert second.status_code == 200
+    assert second.data["session_id"] == first.data["session_id"]
+
+    submit = client.post(
+        reverse("quiz-submit", kwargs={"session_id": first.data["session_id"]}),
+        answer_payload(first),
+        format="json",
+    )
+    assert submit.status_code == 200
+    assert submit.data["kind"] == QuizSession.Kind.DAILY
+    assert submit.data["certificate_id"] is None
+
+    status = client.get(reverse("quiz-daily"))
+    assert status.status_code == 200
+    assert status.data["completed"] is True
+    assert status.data["streak"] == 1
+    user.refresh_from_db()
+    assert user.points > 0

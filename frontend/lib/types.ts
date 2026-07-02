@@ -26,9 +26,20 @@ export type QuizQuestion = {
 
 export type QuizSession = {
   session_id: string;
+  kind?: "standard" | "daily";
   question_count: number;
   expires_in: number;
   questions: QuizQuestion[];
+};
+
+export type DailyQuizStatus = {
+  date: string;
+  completed: boolean;
+  started: boolean;
+  session_id: string | null;
+  score: number | null;
+  streak: number;
+  total_completed: number;
 };
 
 export type QuizResult = {
@@ -99,6 +110,7 @@ export type CourseLesson = {
   id: string;
   title: string;
   summary: string;
+  module_title: string;
   duration_minutes: number;
   order: number;
   completed: boolean;
@@ -111,6 +123,8 @@ export type CourseDetail = Course & {
 export type LessonDetail = {
   id: string;
   course_id: string;
+  course_title: string;
+  course_lessons: CourseLesson[];
   title: string;
   summary: string;
   content: string;
@@ -126,6 +140,57 @@ export type LessonDetail = {
       order: number;
     }[];
   };
+  questions?: {
+    text: string;
+    choices: {
+      id: string;
+      text: string;
+      order: number;
+    }[];
+  }[];
+  blocks?: {
+    id: string;
+    type:
+      | "theory"
+      | "definition"
+      | "example"
+      | "warning"
+      | "note"
+      | "code"
+      | "checklist"
+      | "task"
+      | "quiz"
+      | "materials";
+    title: string;
+    body: string;
+    data: {
+      items?: (string | { ru?: string; uz?: string; text?: string })[];
+      links?: {
+        title: string;
+        url: string;
+      }[];
+      [key: string]: unknown;
+    };
+    order: number;
+  }[];
+  tasks?: {
+    id: string;
+    type: "text" | "checklist" | "sorting" | "scenario";
+    title: string;
+    instruction: string;
+    data: {
+      items?: {
+        text: string | { ru?: string; uz?: string };
+        text_ru?: string;
+        text_uz?: string;
+        risk?: string;
+        category?: string;
+      }[];
+      options?: string[];
+      [key: string]: unknown;
+    };
+    order: number;
+  }[];
 };
 
 export type GameScenario = {
@@ -134,6 +199,7 @@ export type GameScenario = {
   title: string;
   description: string;
   scam_type: string;
+  interface_type: "chat" | "call" | "website";
   difficulty: "easy" | "medium" | "hard";
   steps_count: number;
 };
@@ -142,6 +208,7 @@ export type GameState = {
   id: string;
   status: "active" | "completed";
   scenario_title: string;
+  interface_type: "chat" | "call" | "website";
   step_number: number | null;
   total_steps: number;
   message: string | null;
@@ -167,6 +234,7 @@ export type GameResult = {
     step: number;
     message: string;
     answer: string;
+    selected_safe_intent: string;
     feedback: string;
     tactic: string;
     points: number;
@@ -193,10 +261,44 @@ export type ModerationReport = {
   moderated_at: string | null;
 };
 
+export type ModerationNumber = {
+  number_id: string;
+  phone_masked: string;
+  status: "reported" | "suspicious" | "scammer" | "verified_scammer";
+  approved_reports_count: number;
+  number_verified: boolean;
+  scam_types: string[];
+  first_reported_at: string | null;
+  last_reported_at: string | null;
+  verified_at: string | null;
+  latest_reports: ModerationReport[];
+};
+
 export type ModerationSummary = {
   pending: number;
   approved: number;
   rejected: number;
   verified_numbers: number;
   reports_today: number;
+};
+
+export type AdminLesson = {
+  id: string;
+  slug: string;
+  title: string;
+  summary: string;
+  module_title: string;
+  order: number;
+  duration_minutes: number;
+  is_published: boolean;
+};
+
+export type AdminCourseContent = {
+  id: string;
+  slug: string;
+  title: string;
+  level: "basic" | "advanced" | "expert";
+  is_published: boolean;
+  lessons_count: number;
+  lessons: AdminLesson[];
 };

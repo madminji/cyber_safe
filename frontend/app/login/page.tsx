@@ -10,7 +10,7 @@ import { useLanguage } from "@/context/language-context";
 export default function LoginPage() {
   const router = useRouter();
   const { requestOtp, verifyOtp } = useAuth();
-  const { language } = useLanguage();
+  const { language, t } = useLanguage();
   const [step, setStep] = useState<"phone" | "code">("phone");
   const [phone, setPhone] = useState("+998");
   const [name, setName] = useState("");
@@ -66,26 +66,26 @@ export default function LoginPage() {
         <div className="auth-icon">
           {step === "phone" ? <ShieldCheck /> : <LockKeyhole />}
         </div>
-        <span className="eyebrow">Без пароля</span>
-        <h1>{step === "phone" ? "Войти в CyberSafe" : "Введите код"}</h1>
+        <span className="eyebrow">{t("login.passwordless")}</span>
+        <h1>{step === "phone" ? t("login.title") : t("login.codeTitle")}</h1>
         <p>
           {step === "phone"
-            ? "Мы отправим одноразовый код на ваш номер телефона."
-            : `Код отправлен на ${phone}`}
+            ? t("login.description")
+            : t("login.sentTo", { phone })}
         </p>
 
         {step === "phone" ? (
           <form onSubmit={sendCode} className="form-stack">
             <label>
-              Ваше имя
+              {t("login.name")}
               <input
                 value={name}
                 onChange={(event) => setName(event.target.value)}
-                placeholder="Имя и фамилия"
+                placeholder={t("login.namePlaceholder")}
               />
             </label>
             <label>
-              Номер телефона
+              {t("login.phone")}
               <input
                 value={phone}
                 onChange={(event) => setPhone(event.target.value)}
@@ -95,14 +95,14 @@ export default function LoginPage() {
             </label>
             {error && <div className="form-error">{error}</div>}
             <button className="button button-primary button-wide" disabled={busy}>
-              {busy ? "Отправляем..." : "Получить код"}
+              {busy ? t("login.sending") : t("login.getCode")}
               <ArrowRight size={18} />
             </button>
           </form>
         ) : (
           <form onSubmit={confirmCode} className="form-stack">
             <label>
-              Код из SMS
+              {t("login.smsCode")}
               <input
                 className="otp-input"
                 value={code}
@@ -117,7 +117,7 @@ export default function LoginPage() {
             </label>
             {devCode && (
               <div className="dev-code">
-                Код для локальной разработки: <strong>{devCode}</strong>
+                {t("login.devCode")} <strong>{devCode}</strong>
               </div>
             )}
             {error && <div className="form-error">{error}</div>}
@@ -125,7 +125,7 @@ export default function LoginPage() {
               className="button button-primary button-wide"
               disabled={busy || code.length !== 6}
             >
-              {busy ? "Проверяем..." : "Подтвердить"}
+              {busy ? t("login.checking") : t("login.confirm")}
               <ArrowRight size={18} />
             </button>
             <button
@@ -133,12 +133,12 @@ export default function LoginPage() {
               className="back-button"
               onClick={() => setStep("phone")}
             >
-              <ArrowLeft size={16} /> Изменить номер
+              <ArrowLeft size={16} /> {t("login.changeNumber")}
             </button>
           </form>
         )}
         <small className="privacy-note">
-          Номер хранится в зашифрованном виде и не отображается публично.
+          {t("login.privacy")}
         </small>
       </div>
     </section>

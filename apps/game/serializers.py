@@ -20,6 +20,7 @@ class ScenarioSerializer(serializers.ModelSerializer):
             "title",
             "description",
             "scam_type",
+            "interface_type",
             "difficulty",
             "steps_count",
         )
@@ -48,6 +49,7 @@ class GameStateSerializer(serializers.ModelSerializer):
     total_steps = serializers.SerializerMethodField()
     message = serializers.SerializerMethodField()
     choices = serializers.SerializerMethodField()
+    interface_type = serializers.CharField(source="scenario.interface_type")
 
     class Meta:
         model = GameSession
@@ -55,6 +57,7 @@ class GameStateSerializer(serializers.ModelSerializer):
             "id",
             "status",
             "scenario_title",
+            "interface_type",
             "step_number",
             "total_steps",
             "message",
@@ -93,7 +96,20 @@ class StartGameSerializer(serializers.Serializer):
 
 
 class AnswerGameSerializer(serializers.Serializer):
-    choice_id = serializers.UUIDField()
+    choice_id = serializers.UUIDField(required=False)
+    custom_text = serializers.CharField(
+        required=False,
+        allow_blank=True,
+        trim_whitespace=True,
+        max_length=600,
+    )
+
+    def validate(self, attrs):
+        if not attrs.get("choice_id") and not attrs.get("custom_text", "").strip():
+            raise serializers.ValidationError(
+                "Write your answer or choose one of the suggested strategies."
+            )
+        return attrs
 
 
 class AnswerGameResultSerializer(serializers.Serializer):

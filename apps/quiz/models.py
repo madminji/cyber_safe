@@ -52,6 +52,10 @@ class Choice(models.Model):
 
 
 class TestSession(models.Model):
+    class Kind(models.TextChoices):
+        STANDARD = "standard", "Standard"
+        DAILY = "daily", "Daily"
+
     class Status(models.TextChoices):
         STARTED = "started", "Started"
         COMPLETED = "completed", "Completed"
@@ -73,6 +77,12 @@ class TestSession(models.Model):
     )
     questions = models.ManyToManyField(Question, through="SessionQuestion")
     language = models.CharField(max_length=5, choices=(("ru", "Русский"), ("uz", "O‘zbekcha")))
+    kind = models.CharField(
+        max_length=10,
+        choices=Kind.choices,
+        default=Kind.STANDARD,
+    )
+    daily_date = models.DateField(null=True, blank=True)
     status = models.CharField(max_length=12, choices=Status.choices, default=Status.STARTED)
     score = models.PositiveSmallIntegerField(null=True, blank=True)
     level = models.CharField(max_length=10, choices=Level.choices, default=Level.NONE)
@@ -82,6 +92,15 @@ class TestSession(models.Model):
 
     def __str__(self):
         return f"{self.id} — {self.status}"
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=("user", "daily_date"),
+                condition=models.Q(kind="daily"),
+                name="one_daily_quiz_per_user_date",
+            )
+        ]
 
 
 class SessionQuestion(models.Model):
@@ -121,4 +140,3 @@ class TestAnswer(models.Model):
                 name="one_answer_per_session_question",
             )
         ]
-

@@ -107,7 +107,8 @@ class AnswerGameView(GenericAPIView):
         session, choice, completed = answer_game_step(
             session=session,
             user=request.user,
-            choice_id=serializer.validated_data["choice_id"],
+            choice_id=serializer.validated_data.get("choice_id"),
+            custom_text=serializer.validated_data.get("custom_text", ""),
         )
         session = enrich_game_session(
             session=session,
@@ -160,7 +161,8 @@ class GameResultView(GenericAPIView):
             {
                 "step": turn.step.order,
                 "message": localized(turn.step, "message", language),
-                "answer": localized(turn.choice, "text", language),
+                "answer": turn.custom_text or localized(turn.choice, "text", language),
+                "selected_safe_intent": localized(turn.choice, "text", language),
                 "feedback": localized(turn.choice, "feedback", language),
                 "tactic": localized(turn.step, "tactic", language),
                 "points": turn.points,

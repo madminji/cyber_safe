@@ -33,10 +33,14 @@ class Course(models.Model):
 class Lesson(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     course = models.ForeignKey(Course, related_name="lessons", on_delete=models.CASCADE)
+    slug = models.SlugField(max_length=140, blank=True, db_index=True)
     title_ru = models.CharField(max_length=200)
     title_uz = models.CharField(max_length=200)
     summary_ru = models.TextField()
     summary_uz = models.TextField()
+    module_slug = models.SlugField(max_length=140, blank=True, db_index=True)
+    module_title_ru = models.CharField(max_length=160, blank=True)
+    module_title_uz = models.CharField(max_length=160, blank=True)
     content_ru = models.TextField()
     content_uz = models.TextField()
     video_url_ru = models.URLField(blank=True)
@@ -51,19 +55,83 @@ class Lesson(models.Model):
             models.UniqueConstraint(
                 fields=("course", "order"),
                 name="unique_lesson_order_per_course",
+            ),
+            models.UniqueConstraint(
+                fields=("course", "slug"),
+                condition=~models.Q(slug=""),
+                name="unique_lesson_slug_per_course",
             )
         ]
 
     def __str__(self):
         return f"{self.course.title_ru}: {self.title_ru}"
 
+    @property
+    def question(self):
+        return self.questions.order_by("order", "id").first()
+
+
+class LessonBlock(models.Model):
+    class Type(models.TextChoices):
+        THEORY = "theory", "Theory"
+        DEFINITION = "definition", "Definition"
+        EXAMPLE = "example", "Example"
+        WARNING = "warning", "Warning"
+        NOTE = "note", "Note"
+        CODE = "code", "Code"
+        CHECKLIST = "checklist", "Checklist"
+        TASK = "task", "Task"
+        QUIZ = "quiz", "Quiz"
+        MATERIALS = "materials", "Materials"
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    lesson = models.ForeignKey(Lesson, related_name="blocks", on_delete=models.CASCADE)
+    type = models.CharField(max_length=24, choices=Type.choices)
+    title_ru = models.CharField(max_length=200, blank=True)
+    title_uz = models.CharField(max_length=200, blank=True)
+    body_ru = models.TextField(blank=True)
+    body_uz = models.TextField(blank=True)
+    data = models.JSONField(default=dict, blank=True)
+    order = models.PositiveSmallIntegerField(default=0)
+
+    class Meta:
+        ordering = ("order", "id")
+
+    def __str__(self):
+        return f"{self.lesson.title_ru}: {self.type} #{self.order}"
+
+
+class LessonTask(models.Model):
+    class Type(models.TextChoices):
+        TEXT = "text", "Text"
+        CHECKLIST = "checklist", "Checklist"
+        SORTING = "sorting", "Sorting"
+        SCENARIO = "scenario", "Scenario"
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    lesson = models.ForeignKey(Lesson, related_name="tasks", on_delete=models.CASCADE)
+    type = models.CharField(max_length=24, choices=Type.choices, default=Type.TEXT)
+    title_ru = models.CharField(max_length=200)
+    title_uz = models.CharField(max_length=200, blank=True)
+    instruction_ru = models.TextField()
+    instruction_uz = models.TextField(blank=True)
+    data = models.JSONField(default=dict, blank=True)
+    order = models.PositiveSmallIntegerField(default=0)
+
+    class Meta:
+        ordering = ("order", "id")
+
+    def __str__(self):
+        return f"{self.lesson.title_ru}: {self.title_ru}"
+
 
 class LessonQuestion(models.Model):
-    lesson = models.OneToOneField(
+    lesson = models.ForeignKey(
         Lesson,
-        related_name="question",
+        related_name="questions",
         on_delete=models.CASCADE,
     )
+    order = models.PositiveSmallIntegerField(default=0)
     text_ru = models.TextField()
     text_uz = models.TextField()
     explanation_ru = models.TextField()
@@ -109,4 +177,3 @@ class LessonProgress(models.Model):
                 name="unique_lesson_progress_per_user",
             )
         ]
-

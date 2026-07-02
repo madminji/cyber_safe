@@ -1,0 +1,126 @@
+{
+  "course_slug": "cybersafe-basic",
+  "lesson_slug": "test-json-import-lesson",
+  "module": {
+    "slug": "admin-import-test",
+    "title": {
+      "ru": "Тест импорта",
+      "uz": "Import testi"
+    }
+  },
+  "order": 99,
+  "title": {
+    "ru": "Тестовый урок через JSON",
+    "uz": "JSON orqali test darsi"
+  },
+  "summary": {
+    "ru": "Короткий тестовый урок для проверки загрузки через вкладку модерации.",
+    "uz": "Moderatsiya bo‘limi orqali yuklashni tekshirish uchun qisqa test darsi."
+  },
+  "content": {
+    "ru": "Этот урок создан для проверки JSON-импорта. После загрузки он должен появиться в курсе Basic.",
+    "uz": "Bu dars JSON-importni tekshirish uchun yaratilgan. Yuklangandan keyin Basic kursida ko‘rinishi kerak."
+  },
+  "blocks": [
+    {
+      "type": "definition",
+      "order": 1,
+      "title": {
+        "ru": "Определение",
+        "uz": "Ta’rif"
+      },
+      "body": {
+        "ru": "JSON-импорт — это способ загрузить урок на сайт из заранее подготовленного файла.",
+        "uz": "JSON-import — oldindan tayyorlangan fayldan darsni saytga yuklash usuli."
+      }
+    },
+    {
+      "type": "warning",
+      "order": 2,
+      "title": {
+        "ru": "Важно",
+        "uz": "Muhim"
+      },
+      "body": {
+        "ru": "Если lesson_slug уже существует в этом курсе, урок будет обновлён, а не создан заново.",
+        "uz": "Agar lesson_slug bu kursda mavjud bo‘lsa, dars qayta yaratilmaydi, balki yangilanadi."
+      }
+    },
+    {
+      "type": "checklist",
+      "order": 3,
+      "title": {
+        "ru": "Проверка после загрузки",
+        "uz": "Yuklashdan keyingi tekshiruv"
+      },
+      "items": [
+        "Открыть курс Basic",
+        "Найти урок с номером 99",
+        "Открыть урок и проверить блоки",
+        "Ответить на мини-тест"
+      ]
+    }
+  ],
+  "tasks": [
+    {
+      "type": "text",
+      "order": 1,
+      "title": {
+        "ru": "Мини-задание",
+        "uz": "Mini topshiriq"
+      },
+      "instruction": {
+        "ru": "Напишите одно правило безопасной загрузки учебных материалов.",
+        "uz": "O‘quv materiallarini xavfsiz yuklash bo‘yicha bitta qoida yozing."
+      },
+      "data": {}
+    }
+  ],
+  "quiz": [
+    {
+      "order": 1,
+      "text": {
+        "ru": "Что произойдёт, если повторно загрузить JSON с тем же lesson_slug?",
+        "uz": "Xuddi shu lesson_slug bilan JSON qayta yuklansa nima bo‘ladi?"
+      },
+      "choices": [
+        {
+          "order": 1,
+          "text": {
+            "ru": "Создастся дубль урока",
+            "uz": "Dars dublikati yaratiladi"
+          },
+          "is_correct": false
+        },
+        {
+          "order": 2,
+          "text": {
+            "ru": "Существующий урок обновится",
+            "uz": "Mavjud dars yangilanadi"
+          },
+          "is_correct": true
+        },
+        {
+          "order": 3,
+          "text": {
+            "ru": "Удалится весь курс",
+            "uz": "Butun kurs o‘chiriladi"
+          },
+          "is_correct": false
+        }
+      ],
+      "explanation": {
+        "ru": "Импорт ищет урок по course_slug и lesson_slug. Если урок найден, он обновляется без создания дубля.",
+        "uz": "Import darsni course_slug va lesson_slug orqali topadi. Agar dars mavjud bo‘lsa, dublikat yaratmasdan yangilanadi."
+      }
+    }
+  ],
+  "materials": [
+    {
+      "title": "CyberSafe lesson import example",
+      "url": "https://example.com/cybersafe-json-import"
+    }
+  ],
+  "duration_minutes": 5,
+  "is_published": true
+}

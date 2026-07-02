@@ -5,6 +5,106 @@ from rest_framework.exceptions import ValidationError
 from .models import GameChoice, GameSession, GameTurn
 
 
+RISK_KEYWORDS = {
+    "ru": (
+        "хорошо",
+        "ок",
+        "да",
+        "установ",
+        "скача",
+        "откро",
+        "перейд",
+        "код",
+        "парол",
+        "паспорт",
+        "карт",
+        "отправ",
+        "перешл",
+        "скажу",
+        "введ",
+    ),
+    "uz": (
+        "ha",
+        "xo'p",
+        "mayli",
+        "o'rnat",
+        "yukla",
+        "och",
+        "kod",
+        "parol",
+        "pasport",
+        "karta",
+        "yubor",
+        "kirit",
+    ),
+}
+
+SAFE_KEYWORDS = {
+    "ru": (
+        "не буду",
+        "не установ",
+        "удал",
+        "официаль",
+        "сам провер",
+        "проверю",
+        "сайт",
+        "приложение банка",
+        "поддержк",
+        "заблок",
+        "позвоню",
+        "не перейд",
+        "не откро",
+    ),
+    "uz": (
+        "o'rnatmay",
+        "yuklamay",
+        "o'chir",
+        "rasmiy",
+        "tekshir",
+        "sayt",
+        "qo'llab-quvvatlash",
+        "blok",
+        "qo'ng'iroq",
+        "ochmay",
+    ),
+}
+
+
+def localized(obj, field, language):
+    return getattr(obj, f"{field}_{language}")
+
+
+def infer_choice_from_custom_text(*, step, custom_text, language):
+    text = custom_text.strip().lower()
+    choices = list(step.choices.all())
+    if not text or not choices:
+        return None
+
+    safest = max(choices, key=lambda choice: choice.points)
+    riskiest = min(choices, key=lambda choice: choice.points)
+    middle = sorted(choices, key=lambda choice: choice.points)[len(choices) // 2]
+
+    safe_score = sum(1 for keyword in SAFE_KEYWORDS[language] if keyword in text)
+    risk_score = sum(1 for keyword in RISK_KEYWORDS[language] if keyword in text)
+
+    if safe_score > risk_score:
+        return safest
+    if risk_score > safe_score:
+        return riskiest
+
+    for choice in choices:
+        choice_text = localized(choice, "text", language).lower()
+        choice_words = [
+            word.strip(".,!?;:()«»\"'")
+            for word in choice_text.split()
+            if len(word.strip(".,!?;:()«»\"'")) >= 5
+        ]
+        if any(word in text for word in choice_words):
+            return choice
+
+    return middle
+
+
 @transaction.atomic
 def start_game(*, user, scenario, language):
     first_step = scenario.steps.order_by("order").first()
@@ -27,7 +127,7 @@ def start_game(*, user, scenario, language):
 
 
 @transaction.atomic
-def answer_game_step(*, session, user, choice_id):
+def answer_game_step(*, session, user, choice_id=None, custom_text=""):
     locked = GameSession.objects.select_for_update().select_related(
         "scenario",
         "current_step",
@@ -36,18 +136,28 @@ def answer_game_step(*, session, user, choice_id):
         raise ValidationError("Game session not found.")
     if locked.status != GameSession.Status.ACTIVE or locked.current_step_id is None:
         raise ValidationError("Game session has already been completed.")
-    try:
-        choice = GameChoice.objects.get(
-            id=choice_id,
+    if choice_id:
+        try:
+            choice = GameChoice.objects.get(
+                id=choice_id,
+                step=locked.current_step,
+            )
+        except GameChoice.DoesNotExist as exc:
+            raise ValidationError("Selected answer does not belong to this step.") from exc
+    else:
+        choice = infer_choice_from_custom_text(
             step=locked.current_step,
+            custom_text=custom_text,
+            language=locked.language,
         )
-    except GameChoice.DoesNotExist as exc:
-        raise ValidationError("Selected answer does not belong to this step.") from exc
+        if choice is None:
+            raise ValidationError("Write your answer or choose one of the strategies.")
 
     GameTurn.objects.create(
         session=locked,
         step=locked.current_step,
         choice=choice,
+        custom_text=custom_text[:600],
         points=choice.points,
     )
     locked.score += choice.points

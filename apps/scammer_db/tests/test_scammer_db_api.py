@@ -151,6 +151,11 @@ def test_citizen_cannot_access_moderation(citizen):
 
     assert response.status_code == 403
 
+    numbers_response = authenticated_client(citizen).get(
+        reverse("scammer-moderation-number-list")
+    )
+    assert numbers_response.status_code == 403
+
 
 @pytest.mark.django_db
 def test_moderation_summary_counts_queue(citizen, moderator):
@@ -189,6 +194,39 @@ def test_moderator_report_contains_number_state(citizen, moderator):
     assert report["approved_reports_count"] == 0
     assert report["number_verified"] is False
     assert report["reporter_name"] == citizen.full_name
+
+
+@pytest.mark.django_db
+def test_approved_number_is_visible_in_moderation_number_registry(citizen, moderator):
+    created = authenticated_client(citizen).post(
+        reverse("scammer-report-create"),
+        report_payload(),
+        format="json",
+    )
+    moderator_client = authenticated_client(moderator)
+    moderator_client.patch(
+        reverse(
+            "scammer-moderation-detail",
+            kwargs={"report_id": created.data["id"]},
+        ),
+        {"status": CommunityReport.Status.APPROVED},
+        format="json",
+    )
+
+    response = moderator_client.get(
+        reverse("scammer-moderation-number-list"),
+        {"status": ScammerNumber.Status.SUSPICIOUS},
+    )
+
+    assert response.status_code == 200
+    assert len(response.data) == 1
+    number = response.data[0]
+    assert number["phone_masked"] == "+99893***2233"
+    assert number["status"] == ScammerNumber.Status.SUSPICIOUS
+    assert number["approved_reports_count"] == 1
+    assert number["number_verified"] is False
+    assert number["scam_types"] == [CommunityReport.ScamType.BANK_CALL]
+    assert number["latest_reports"][0]["id"] == created.data["id"]
 
 
 @pytest.mark.django_db

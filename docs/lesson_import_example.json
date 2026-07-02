@@ -1,0 +1,140 @@
+{
+  "course_slug": "cybersafe-basic",
+  "lesson_slug": "phishing-links-basics",
+  "module": {
+    "slug": "safe-clicking",
+    "title": {
+      "ru": "Модуль 1. Безопасный клик",
+      "uz": "1-modul. Xavfsiz bosish"
+    }
+  },
+  "order": 1,
+  "title": {
+    "ru": "Как распознать фишинговую ссылку",
+    "uz": "Fishing havolasini qanday aniqlash mumkin"
+  },
+  "summary": {
+    "ru": "Урок объясняет, как проверять ссылки до перехода и какие признаки чаще всего встречаются в мошеннических сообщениях.",
+    "uz": "Dars havolani bosishdan oldin tekshirishni va firibgar xabarlardagi asosiy belgilarni tushuntiradi."
+  },
+  "objectives": [
+    "Понять, зачем мошенники маскируют ссылки.",
+    "Научиться проверять домен и контекст сообщения.",
+    "Отработать безопасный алгоритм действий."
+  ],
+  "content": {
+    "ru": "Фишинговая ссылка ведёт на сайт, который имитирует банк, маркетплейс, госуслугу или мессенджер. Главная цель — заставить человека ввести пароль, SMS-код, данные карты или скачать вредный файл.",
+    "uz": "Fishing havolasi bank, marketplace, davlat xizmati yoki messenjerga o‘xshatilgan soxta saytga olib boradi. Maqsad — parol, SMS-kod, karta ma’lumotlari yoki zararli faylni olish."
+  },
+  "blocks": [
+    {
+      "type": "definition",
+      "order": 1,
+      "title": {
+        "ru": "Определение",
+        "uz": "Ta’rif"
+      },
+      "body": {
+        "ru": "Фишинг — это попытка обманом получить конфиденциальные данные через поддельное сообщение, сайт или звонок.",
+        "uz": "Fishing — soxta xabar, sayt yoki qo‘ng‘iroq orqali maxfiy ma’lumotlarni aldov yo‘li bilan olishga urinish."
+      }
+    },
+    {
+      "type": "warning",
+      "order": 2,
+      "body": {
+        "ru": "Не вводите SMS-код, PIN-код и пароль после перехода по ссылке из сообщения. Откройте сервис вручную через официальное приложение или сайт.",
+        "uz": "Xabardagi havola orqali o‘tgandan keyin SMS-kod, PIN-kod yoki parol kiritmang. Xizmatni rasmiy ilova yoki sayt orqali oching."
+      }
+    },
+    {
+      "type": "example",
+      "order": 3,
+      "title": {
+        "ru": "Пример опасной ссылки",
+        "uz": "Xavfli havola namunasi"
+      },
+      "body": {
+        "ru": "payme-secure-login.example.com выглядит похоже на сервис оплаты, но настоящий домен находится не там, где ожидает пользователь.",
+        "uz": "payme-secure-login.example.com to‘lov servisiga o‘xshaydi, lekin haqiqiy domen foydalanuvchi kutgan joyda emas."
+      }
+    },
+    {
+      "type": "checklist",
+      "order": 4,
+      "title": {
+        "ru": "Алгоритм проверки",
+        "uz": "Tekshirish algoritmi"
+      },
+      "items": [
+        "Посмотрите на домен, а не только на текст ссылки.",
+        "Проверьте, есть ли давление срочностью.",
+        "Не открывайте APK, архивы и документы из неизвестных сообщений.",
+        "Зайдите в сервис вручную и проверьте уведомление там."
+      ]
+    }
+  ],
+  "tasks": [
+    {
+      "type": "sorting",
+      "order": 1,
+      "title": {
+        "ru": "Разберите сообщения по уровню риска",
+        "uz": "Xabarlarni xavf darajasi bo‘yicha ajrating"
+      },
+      "instruction": {
+        "ru": "Отметьте, какие сообщения выглядят безопасными, а какие требуют проверки.",
+        "uz": "Qaysi xabarlar xavfsiz, qaysilari tekshirishni talab qilishini belgilang."
+      },
+      "data": {
+        "items": [
+          {
+            "text": "Ваша карта заблокирована. Срочно подтвердите данные по ссылке.",
+            "risk": "high"
+          },
+          {
+            "text": "Ваш заказ доставлен. Проверьте статус в официальном приложении.",
+            "risk": "low"
+          }
+        ]
+      }
+    }
+  ],
+  "quiz": [
+    {
+      "order": 1,
+      "text": {
+        "ru": "Что безопаснее сделать, если банк прислал ссылку для подтверждения карты?",
+        "uz": "Bank kartani tasdiqlash uchun havola yuborsa, eng xavfsiz harakat qaysi?"
+      },
+      "choices": [
+        {
+          "text": {
+            "ru": "Перейти по ссылке и быстро ввести код",
+            "uz": "Havolaga o‘tib kodni tez kiritish"
+          },
+          "is_correct": false
+        },
+        {
+          "text": {
+            "ru": "Открыть официальное приложение банка вручную",
+            "uz": "Bankning rasmiy ilovasini qo‘lda ochish"
+          },
+          "is_correct": true
+        }
+      ],
+      "explanation": {
+        "ru": "Настоящие уведомления лучше проверять внутри официального приложения или через официальный сайт, введённый вручную.",
+        "uz": "Haqiqiy bildirishnomalarni rasmiy ilova ichida yoki qo‘lda kiritilgan rasmiy sayt orqali tekshirish xavfsizroq."
+      }
+    }
+  ],
+  "materials": [
+    {
+      "title": "FTC: How to recognize and avoid phishing scams",
+      "url": "https://consumer.ftc.gov/articles/how-recognize-and-avoid-phishing-scams"
+    }
+  ],
+  "duration_minutes": 12,
+  "is_published": true
+}

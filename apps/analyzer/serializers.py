@@ -3,10 +3,20 @@ from rest_framework import serializers
 
 class URLAnalysisInputSerializer(serializers.Serializer):
     url = serializers.CharField(min_length=4, max_length=2048, trim_whitespace=True)
+    language = serializers.ChoiceField(
+        choices=("ru", "uz"),
+        default="ru",
+        required=False,
+    )
 
 
 class SMSAnalysisInputSerializer(serializers.Serializer):
     text = serializers.CharField(min_length=3, max_length=5000, trim_whitespace=True)
+    language = serializers.ChoiceField(
+        choices=("ru", "uz"),
+        default="ru",
+        required=False,
+    )
 
 
 class AnalysisResultSerializer(serializers.Serializer):
@@ -16,4 +26,3 @@ class AnalysisResultSerializer(serializers.Serializer):
     reasons = serializers.ListField(child=serializers.CharField())
     signals = serializers.ListField(child=serializers.CharField())
     privacy = serializers.CharField()
-

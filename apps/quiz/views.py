@@ -1,16 +1,36 @@
 from django.conf import settings
 from drf_spectacular.utils import extend_schema
 from rest_framework.generics import GenericAPIView
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
 from .models import TestSession
 from .serializers import (
     AnswerResultSerializer,
     QuestionSerializer,
+    StartDailyTestSerializer,
     StartTestSerializer,
     SubmitTestSerializer,
 )
+from .services import daily_quiz_status
+
+
+def session_payload(session):
+    questions = [
+        session_question.question
+        for session_question in session.session_questions.all()
+    ]
+    return {
+        "session_id": session.id,
+        "kind": session.kind,
+        "question_count": len(questions),
+        "expires_in": settings.QUIZ_SESSION_TTL_SECONDS,
+        "questions": QuestionSerializer(
+            questions,
+            many=True,
+            context={"language": session.language},
+        ).data,
+    }
 
 
 class StartTestView(GenericAPIView):
@@ -21,23 +41,25 @@ class StartTestView(GenericAPIView):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         session = serializer.save()
-        questions = [
-            session_question.question
-            for session_question in session.session_questions.all()
-        ]
-        return Response(
-            {
-                "session_id": session.id,
-                "question_count": len(questions),
-                "expires_in": settings.QUIZ_SESSION_TTL_SECONDS,
-                "questions": QuestionSerializer(
-                    questions,
-                    many=True,
-                    context={"language": session.language},
-                ).data,
-            },
-            status=201,
-        )
+        return Response(session_payload(session), status=201)
+
+
+class DailyQuizView(GenericAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = StartDailyTestSerializer
+
+    def get(self, request):
+        return Response(daily_quiz_status(request.user))
+
+    def post(self, request):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        session, created = serializer.save()
+        payload = session_payload(session)
+        payload["created"] = created
+        payload["completed"] = session.status == TestSession.Status.COMPLETED
+        payload["score"] = session.score
+        return Response(payload, status=201 if created else 200)
 
 
 class SubmitTestView(GenericAPIView):
@@ -59,6 +81,7 @@ class SubmitTestView(GenericAPIView):
         return Response(
             {
                 "session_id": session.id,
+                "kind": session.kind,
                 "score": session.score,
                 "level": session.level,
                 "passed": session.score >= 60,

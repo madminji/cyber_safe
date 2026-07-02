@@ -23,28 +23,109 @@ def score_level(score):
 
 
 @transaction.atomic
-def start_test(*, user, language):
-    question_ids = list(
+def question_bank_ids():
+    return list(
         Question.objects.filter(is_active=True, choices__is_correct=True)
         .distinct()
         .values_list("id", flat=True)
     )
+
+
+def create_session(*, user, language, question_ids, kind, daily_date=None):
+    session = TestSession.objects.create(
+        user=user if user and user.is_authenticated else None,
+        language=language,
+        kind=kind,
+        daily_date=daily_date,
+    )
+    SessionQuestion.objects.bulk_create(
+        [
+            SessionQuestion(session=session, question_id=question_id, order=index)
+            for index, question_id in enumerate(question_ids, start=1)
+        ]
+    )
+    return get_session_with_questions(session.id)
+
+
+@transaction.atomic
+def start_test(*, user, language):
+    question_ids = question_bank_ids()
     if not question_ids:
         raise ValidationError("The question bank is empty.")
 
     count = min(settings.QUIZ_QUESTION_COUNT, len(question_ids))
     selected_ids = random.sample(question_ids, count)
-    session = TestSession.objects.create(
-        user=user if user and user.is_authenticated else None,
+    return create_session(
+        user=user,
         language=language,
+        question_ids=selected_ids,
+        kind=TestSession.Kind.STANDARD,
     )
-    SessionQuestion.objects.bulk_create(
-        [
-            SessionQuestion(session=session, question_id=question_id, order=index)
-            for index, question_id in enumerate(selected_ids, start=1)
-        ]
+
+
+@transaction.atomic
+def start_daily_test(*, user, language):
+    today = timezone.localdate()
+    existing = TestSession.objects.filter(
+        user=user,
+        kind=TestSession.Kind.DAILY,
+        daily_date=today,
+    ).first()
+    if existing:
+        return get_session_with_questions(existing.id), False
+
+    question_ids = question_bank_ids()
+    if not question_ids:
+        raise ValidationError("The question bank is empty.")
+    count = min(settings.DAILY_QUIZ_QUESTION_COUNT, len(question_ids))
+    generator = random.Random(f"{today.isoformat()}:{user.id}")
+    selected_ids = generator.sample(question_ids, count)
+    return (
+        create_session(
+            user=user,
+            language=language,
+            question_ids=selected_ids,
+            kind=TestSession.Kind.DAILY,
+            daily_date=today,
+        ),
+        True,
     )
-    return get_session_with_questions(session.id)
+
+
+def daily_quiz_status(user):
+    today = timezone.localdate()
+    sessions = TestSession.objects.filter(
+        user=user,
+        kind=TestSession.Kind.DAILY,
+        status=TestSession.Status.COMPLETED,
+    ).order_by("-daily_date")
+    completed_dates = list(sessions.values_list("daily_date", flat=True))
+    streak = 0
+    cursor = today
+    if completed_dates and completed_dates[0] != today:
+        cursor = today - timedelta(days=1)
+    completed_set = set(completed_dates)
+    while cursor in completed_set:
+        streak += 1
+        cursor -= timedelta(days=1)
+    today_session = TestSession.objects.filter(
+        user=user,
+        kind=TestSession.Kind.DAILY,
+        daily_date=today,
+    ).first()
+    return {
+        "date": today,
+        "completed": bool(
+            today_session and today_session.status == TestSession.Status.COMPLETED
+        ),
+        "started": bool(
+            today_session and today_session.status == TestSession.Status.STARTED
+        ),
+        "session_id": today_session.id if today_session else None,
+        "score": today_session.score if today_session else None,
+        "streak": streak,
+        "total_completed": sessions.count(),
+    }
 
 
 def get_session_with_questions(session_id):
@@ -121,7 +202,15 @@ def submit_test(*, session_id, actor, answers, duration_seconds):
     )
 
     certificate = None
-    if session.user_id and score >= 60:
+    if session.kind == TestSession.Kind.DAILY and session.user_id:
+        session.user.points += max(1, round(score / 20))
+        session.user.save(update_fields=["points", "updated_at"])
+
+    if (
+        session.kind == TestSession.Kind.STANDARD
+        and session.user_id
+        and score >= 60
+    ):
         certificate, _ = Certificate.objects.get_or_create(
             quiz_session=session,
             defaults={

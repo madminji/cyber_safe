@@ -5,11 +5,13 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 
 import { useAuth } from "@/context/auth-context";
+import { useLanguage } from "@/context/language-context";
 import { API_URL, api } from "@/lib/api";
 import { Certificate } from "@/lib/types";
 
 export default function CertificatesPage() {
   const { user, loading } = useAuth();
+  const { language, t } = useLanguage();
   const [certificates, setCertificates] = useState<Certificate[]>([]);
   const [busy, setBusy] = useState(true);
   const [error, setError] = useState("");
@@ -31,10 +33,10 @@ export default function CertificatesPage() {
       <div className="container">
         <div className="section-heading compact">
           <span className="eyebrow">
-            <Award size={15} /> Подтверждение знаний
+            <Award size={15} /> {t("cert.eyebrow")}
           </span>
-          <h1>Мои сертификаты</h1>
-          <p>Каждый документ имеет уникальный ID и публичную QR-проверку.</p>
+          <h1>{t("cert.title")}</h1>
+          <p>{t("cert.lead")}</p>
         </div>
 
         {!loading && !user ? (
@@ -42,25 +44,25 @@ export default function CertificatesPage() {
             <span className="empty-icon">
               <LockKeyhole />
             </span>
-            <h2>Войдите, чтобы увидеть сертификаты</h2>
-            <p>Сертификат сохраняется в кабинете после успешного теста.</p>
+            <h2>{t("cert.loginTitle")}</h2>
+            <p>{t("cert.loginText")}</p>
             <Link className="button button-primary" href="/login">
-              Войти
+              {t("common.login")}
             </Link>
           </div>
         ) : busy ? (
           <div className="loading-card">
-            <span className="loader" /> Загружаем сертификаты...
+            <span className="loader" /> {t("cert.loading")}
           </div>
         ) : certificates.length === 0 ? (
           <div className="empty-state">
             <span className="empty-icon">
               <Award />
             </span>
-            <h2>Здесь появится ваш первый сертификат</h2>
-            <p>Наберите не менее 60% в тесте по цифровой безопасности.</p>
+            <h2>{t("cert.emptyTitle")}</h2>
+            <p>{t("cert.emptyText")}</p>
             <Link className="button button-primary" href="/quiz">
-              Пройти тест
+              {t("cert.takeQuiz")}
             </Link>
           </div>
         ) : (
@@ -73,11 +75,14 @@ export default function CertificatesPage() {
                 </div>
                 <span>CYBERSAFE UZBEKISTAN</span>
                 <h2>{certificate.owner_name}</h2>
-                <p>Уровень цифровой безопасности</p>
+                <p>{t("cert.level")}</p>
                 <strong>{certificate.level.toUpperCase()}</strong>
                 <div className="certificate-score">{certificate.score}%</div>
                 <small>
-                  Выдан {new Date(certificate.issued_at).toLocaleDateString("ru-RU")}
+                  {t("cert.issued")}{" "}
+                  {new Date(certificate.issued_at).toLocaleDateString(
+                    language === "uz" ? "uz-UZ" : "ru-RU",
+                  )}
                 </small>
                 <div className="certificate-actions">
                   <a
@@ -92,7 +97,7 @@ export default function CertificatesPage() {
                     href={`${API_URL}/certificates/${certificate.id}/`}
                     target="_blank"
                   >
-                    <ExternalLink size={16} /> Проверить
+                    <ExternalLink size={16} /> {t("cert.verify")}
                   </a>
                 </div>
               </article>
@@ -104,4 +109,3 @@ export default function CertificatesPage() {
     </section>
   );
 }
-

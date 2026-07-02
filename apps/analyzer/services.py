@@ -70,6 +70,70 @@ IMPERSONATED_BRANDS = {
     "uzum": {"uzum.uz", "uzumbank.uz"},
 }
 
+MESSAGES = {
+    "ru": {
+        "urgency": "Сообщение создаёт искусственную срочность или угрожает блокировкой.",
+        "secret_request": "Запрашиваются секретные данные или одноразовый код.",
+        "money": "Есть просьба перевести деньги или оплатить вымышленную комиссию.",
+        "prize": "Обещается неожиданный приз, компенсация или возврат денег.",
+        "apk": "Предлагается установить приложение или APK-файл.",
+        "remote_access": "Запрашивается удалённый доступ или демонстрация экрана.",
+        "messenger_takeover": "Запрашивается код входа или QR-код, с помощью которого могут захватить аккаунт.",
+        "government_impersonation": "Сообщение использует тему государственной выплаты, налога, штрафа или субсидии.",
+        "investment": "Обещается гарантированная прибыль или инвестиция без риска.",
+        "job_deposit": "Предлагается лёгкий заработок или работа с предварительным платежом.",
+        "family_emergency": "Используется сообщение о чрезвычайной ситуации с родственником; голос и аккаунт могут быть подделаны.",
+        "invalid_host": "Не удалось определить домен ссылки.",
+        "known_threat": "Домен находится в локальной базе угроз CyberSafe ({category}).",
+        "no_https": "Ссылка использует незашифрованный HTTP.",
+        "userinfo": "Адрес скрывает реальный домен после символа @.",
+        "ip_host": "Вместо доменного имени используется IP-адрес.",
+        "punycode": "Домен использует Punycode и может имитировать знакомое название.",
+        "shortener": "Сокращённая ссылка скрывает конечный адрес.",
+        "risky_tld": "Доменная зона часто используется в одноразовых мошеннических сайтах.",
+        "many_subdomains": "Адрес содержит необычно много поддоменов.",
+        "bait_words": "В адресе сочетаются слова, типичные для фишинговых страниц.",
+        "brand_impersonation": "Домен содержит название «{brand}», но не относится к известному официальному домену.",
+        "very_long": "Ссылка необычно длинная и может скрывать значимые части адреса.",
+        "safe_url": "Явных технических признаков мошенничества не найдено. Это не гарантирует безопасность сайта.",
+        "contains_link": "Сообщение содержит ссылку — проверяйте домен отдельно.",
+        "safe_sms": "Явных манипулятивных признаков не найдено. Не передавайте коды и данные неизвестным отправителям.",
+    },
+    "uz": {
+        "urgency": "Xabarda sun’iy shoshilinch vaziyat yaratilgan yoki bloklash bilan tahdid qilinmoqda.",
+        "secret_request": "Maxfiy ma’lumot yoki bir martalik kod so‘ralmoqda.",
+        "money": "Pul o‘tkazish yoki soxta komissiyani to‘lash so‘ralmoqda.",
+        "prize": "Kutilmagan yutuq, kompensatsiya yoki pul qaytarish va’da qilinmoqda.",
+        "apk": "Ilova yoki APK faylini o‘rnatish taklif qilinmoqda.",
+        "remote_access": "Masofaviy kirish yoki ekranni ko‘rsatish so‘ralmoqda.",
+        "messenger_takeover": "Akkauntni egallash uchun ishlatilishi mumkin bo‘lgan kirish kodi yoki QR-kod so‘ralmoqda.",
+        "government_impersonation": "Xabarda davlat to‘lovi, soliq, jarima yoki subsidiya mavzusidan foydalanilgan.",
+        "investment": "Kafolatlangan foyda yoki xavfsiz investitsiya va’da qilinmoqda.",
+        "job_deposit": "Oson daromad yoki oldindan to‘lov talab qiladigan ish taklif qilinmoqda.",
+        "family_emergency": "Qarindosh bilan bog‘liq favqulodda vaziyat ishlatilmoqda; ovoz yoki akkaunt soxtalashtirilgan bo‘lishi mumkin.",
+        "invalid_host": "Havola domenini aniqlab bo‘lmadi.",
+        "known_threat": "Domen CyberSafe mahalliy tahdidlar bazasida mavjud ({category}).",
+        "no_https": "Havola shifrlanmagan HTTP protokolidan foydalanadi.",
+        "userinfo": "Manzilda @ belgisidan keyingi haqiqiy domen yashirilgan.",
+        "ip_host": "Domen nomi o‘rniga IP-manzil ishlatilgan.",
+        "punycode": "Domen Punycode ishlatadi va tanish nomga taqlid qilishi mumkin.",
+        "shortener": "Qisqartirilgan havola yakuniy manzilni yashiradi.",
+        "risky_tld": "Bu domen zonasi bir martalik firibgar saytlarda ko‘p ishlatiladi.",
+        "many_subdomains": "Manzilda noodatiy darajada ko‘p subdomen bor.",
+        "bait_words": "Manzilda fishing sahifalariga xos bir nechta so‘z birlashgan.",
+        "brand_impersonation": "Domen «{brand}» nomini o‘z ichiga oladi, ammo ma’lum rasmiy domenga tegishli emas.",
+        "very_long": "Havola noodatiy uzun va muhim qismlarni yashirishi mumkin.",
+        "safe_url": "Firibgarlikning aniq texnik belgisi topilmadi. Bu sayt xavfsizligini kafolatlamaydi.",
+        "contains_link": "Xabarda havola bor — domenni alohida tekshiring.",
+        "safe_sms": "Aniq manipulyatsiya belgisi topilmadi. Noma’lum jo‘natuvchiga kod va ma’lumot bermang.",
+    },
+}
+
+
+def message(language, key, **values):
+    return MESSAGES.get(language, MESSAGES["ru"])[key].format(**values)
+
+
 SMS_RULES = [
     (
         30,
@@ -79,17 +143,17 @@ SMS_RULES = [
             r"zudlik|tezda|bloklan\w+|oxirgi\s+imkon)\b",
             re.IGNORECASE,
         ),
-        "Сообщение создаёт искусственную срочность или угрожает блокировкой.",
+        "urgency",
     ),
     (
         35,
         "secret_request",
         re.compile(
             r"\b(sms[\s-]?код|код\s+подтверждения|одноразов\w+\s+код|"
-            r"парол\w+|cvv|pin|tasdiqlash\s+kodi|sms\s*kod|parol)\b",
+            r"парол\w+|cvv|pin|tasdiqlash\s+kodi|sms\s*kod\w*|parol)\b",
             re.IGNORECASE,
         ),
-        "Запрашиваются секретные данные или одноразовый код.",
+        "secret_request",
     ),
     (
         25,
@@ -99,7 +163,7 @@ SMS_RULES = [
             r"pul\s+o['‘’`]tkaz|xavfsiz\s+hisob|komissiya)\b",
             re.IGNORECASE,
         ),
-        "Есть просьба перевести деньги или оплатить вымышленную комиссию.",
+        "money",
     ),
     (
         20,
@@ -109,7 +173,7 @@ SMS_RULES = [
             r"yutuq|sovrin|kompensatsiya)\b",
             re.IGNORECASE,
         ),
-        "Обещается неожиданный приз, компенсация или возврат денег.",
+        "prize",
     ),
     (
         30,
@@ -119,7 +183,7 @@ SMS_RULES = [
             r"ilovani\s+(?:yukla|o['‘’`]rnat))\b",
             re.IGNORECASE,
         ),
-        "Предлагается установить приложение или APK-файл.",
+        "apk",
     ),
     (
         35,
@@ -130,7 +194,7 @@ SMS_RULES = [
             r"ekran\w+\s+ko['‘’`]rsat)\b",
             re.IGNORECASE,
         ),
-        "Запрашивается удалённый доступ или демонстрация экрана.",
+        "remote_access",
     ),
     (
         30,
@@ -141,7 +205,7 @@ SMS_RULES = [
             r"qr[\s-]?kod\w*\s+skaner)\b",
             re.IGNORECASE,
         ),
-        "Запрашивается код входа или QR-код, с помощью которого могут захватить аккаунт.",
+        "messenger_takeover",
     ),
     (
         25,
@@ -151,7 +215,7 @@ SMS_RULES = [
             r"davlat\s+xizmat|soliq\s+qaytar|subsidiya|nafaqa|jarima)\b",
             re.IGNORECASE,
         ),
-        "Сообщение использует тему государственной выплаты, налога, штрафа или субсидии.",
+        "government_impersonation",
     ),
     (
         30,
@@ -162,7 +226,7 @@ SMS_RULES = [
             r"kripto|investitsiya)\b",
             re.IGNORECASE,
         ),
-        "Обещается гарантированная прибыль или инвестиция без риска.",
+        "investment",
     ),
     (
         25,
@@ -173,7 +237,7 @@ SMS_RULES = [
             r"depozit\s+to['‘’`]la|tovar\w*\s+sotib\s+ol)\b",
             re.IGNORECASE,
         ),
-        "Предлагается лёгкий заработок или работа с предварительным платежом.",
+        "job_deposit",
     ),
     (
         20,
@@ -184,7 +248,7 @@ SMS_RULES = [
             r"avariya|politsiya|kasalxona|tez\s+pul)\b",
             re.IGNORECASE,
         ),
-        "Используется сообщение о чрезвычайной ситуации с родственником; голос и аккаунт могут быть подделаны.",
+        "family_emergency",
     ),
 ]
 
@@ -229,7 +293,7 @@ def verdict_for_score(score):
     return AnalysisLog.Verdict.SAFE
 
 
-def analyze_url_value(value):
+def analyze_url_value(value, language="ru"):
     raw = value.strip()
     candidate = raw if "://" in raw else f"https://{raw}"
     parsed = urlsplit(candidate)
@@ -242,7 +306,7 @@ def analyze_url_value(value):
         return AnalysisResult(
             AnalysisLog.Verdict.SUSPICIOUS,
             40,
-            ["Не удалось определить домен ссылки."],
+            [message(language, "invalid_host")],
             ["invalid_host"],
         )
 
@@ -253,49 +317,47 @@ def analyze_url_value(value):
     if threat:
         score += 100
         signals.append("known_threat")
-        reasons.append(
-            f"Домен находится в локальной базе угроз CyberSafe ({threat.category})."
-        )
+        reasons.append(message(language, "known_threat", category=threat.category))
 
     if parsed.scheme.lower() == "http":
         score += 20
         signals.append("no_https")
-        reasons.append("Ссылка использует незашифрованный HTTP.")
+        reasons.append(message(language, "no_https"))
 
     if parsed.username or parsed.password:
         score += 45
         signals.append("userinfo")
-        reasons.append("Адрес скрывает реальный домен после символа @.")
+        reasons.append(message(language, "userinfo"))
 
     try:
         ipaddress.ip_address(hostname)
         score += 35
         signals.append("ip_host")
-        reasons.append("Вместо доменного имени используется IP-адрес.")
+        reasons.append(message(language, "ip_host"))
     except ValueError:
         pass
 
     if hostname.startswith("xn--") or ".xn--" in hostname:
         score += 25
         signals.append("punycode")
-        reasons.append("Домен использует Punycode и может имитировать знакомое название.")
+        reasons.append(message(language, "punycode"))
 
     if hostname in SHORTENER_DOMAINS:
         score += 25
         signals.append("shortener")
-        reasons.append("Сокращённая ссылка скрывает конечный адрес.")
+        reasons.append(message(language, "shortener"))
 
     tld = hostname.rsplit(".", 1)[-1] if "." in hostname else ""
     if tld in SUSPICIOUS_TLDS:
         score += 20
         signals.append("risky_tld")
-        reasons.append("Доменная зона часто используется в одноразовых мошеннических сайтах.")
+        reasons.append(message(language, "risky_tld"))
 
     labels = hostname.split(".")
     if len(labels) >= 5:
         score += 15
         signals.append("many_subdomains")
-        reasons.append("Адрес содержит необычно много поддоменов.")
+        reasons.append(message(language, "many_subdomains"))
 
     bait_count = sum(
         1 for word in URL_BAIT_WORDS if word in f"{hostname}{parsed.path}".lower()
@@ -303,7 +365,7 @@ def analyze_url_value(value):
     if bait_count >= 2:
         score += min(30, bait_count * 8)
         signals.append("bait_words")
-        reasons.append("В адресе сочетаются слова, типичные для фишинговых страниц.")
+        reasons.append(message(language, "bait_words"))
 
     for brand, official_domains in IMPERSONATED_BRANDS.items():
         if brand not in hostname:
@@ -315,43 +377,38 @@ def analyze_url_value(value):
         if not is_official:
             score += 35
             signals.append("brand_impersonation")
-            reasons.append(
-                f"Домен содержит название «{brand}», но не относится к известному официальному домену."
-            )
+            reasons.append(message(language, "brand_impersonation", brand=brand))
             break
 
     if len(raw) > 160:
         score += 15
         signals.append("very_long")
-        reasons.append("Ссылка необычно длинная и может скрывать значимые части адреса.")
+        reasons.append(message(language, "very_long"))
 
     score = min(score, 100)
     if not reasons:
-        reasons.append(
-            "Явных технических признаков мошенничества не найдено. "
-            "Это не гарантирует безопасность сайта."
-        )
+        reasons.append(message(language, "safe_url"))
     return AnalysisResult(verdict_for_score(score), score, reasons, signals)
 
 
-def analyze_sms_value(value):
+def analyze_sms_value(value, language="ru"):
     text = value.strip()
     score = 0
     reasons = []
     signals = []
-    for weight, signal, pattern, explanation in SMS_RULES:
+    for weight, signal, pattern, message_key in SMS_RULES:
         if pattern.search(text):
             score += weight
             signals.append(signal)
-            reasons.append(explanation)
+            reasons.append(message(language, message_key))
 
     links = URL_PATTERN.findall(text)
     if links:
         signals.append("contains_link")
-        reasons.append("Сообщение содержит ссылку — проверяйте домен отдельно.")
+        reasons.append(message(language, "contains_link"))
         score += 15
         for link in links[:2]:
-            url_result = analyze_url_value(link)
+            url_result = analyze_url_value(link, language=language)
             if url_result.risk_score >= 25:
                 score += min(40, url_result.risk_score // 2)
                 reasons.extend(url_result.reasons[:2])
@@ -361,10 +418,7 @@ def analyze_sms_value(value):
         score += 5
     score = min(score, 100)
     if not reasons:
-        reasons.append(
-            "Явных манипулятивных признаков не найдено. "
-            "Не передавайте коды и данные неизвестным отправителям."
-        )
+        reasons.append(message(language, "safe_sms"))
     return AnalysisResult(verdict_for_score(score), score, reasons, list(dict.fromkeys(signals)))
 
 

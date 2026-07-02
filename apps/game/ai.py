@@ -67,11 +67,12 @@ def localized(obj, field, language):
     return getattr(obj, f"{field}_{language}")
 
 
-def generate_next_message(*, session, selected_choice):
+def generate_next_message(*, session, selected_choice, custom_text=""):
     if session.current_step_id is None:
         return None
     language_name = "Russian" if session.language == "ru" else "Uzbek"
     fallback = localized(session.current_step, "message", session.language)
+    trainee_reply = custom_text or localized(selected_choice, "text", session.language)
     messages = [
         {
             "role": "system",
@@ -87,7 +88,7 @@ def generate_next_message(*, session, selected_choice):
             "role": "user",
             "content": (
                 f"Scenario: {localized(session.scenario, 'title', session.language)}\n"
-                f"The trainee replied: {localized(selected_choice, 'text', session.language)}\n"
+                f"The trainee replied: {trainee_reply}\n"
                 f"Required next-step meaning: {fallback}\n"
                 "Rewrite the required meaning as a natural reaction to the trainee's reply."
             ),
@@ -103,7 +104,13 @@ def generate_final_analysis(session):
         transcript.append(
             {
                 "tactic": localized(turn.step, "tactic", session.language),
-                "trainee_answer": localized(turn.choice, "text", session.language),
+                "trainee_answer": turn.custom_text
+                or localized(turn.choice, "text", session.language),
+                "selected_safe_intent": localized(
+                    turn.choice,
+                    "text",
+                    session.language,
+                ),
                 "points": turn.points,
             }
         )
@@ -139,6 +146,11 @@ def enrich_game_session(*, session, selected_choice, completed):
             content, model = generate_next_message(
                 session=session,
                 selected_choice=selected_choice,
+                custom_text=getattr(
+                    session.turns.order_by("-created_at").first(),
+                    "custom_text",
+                    "",
+                ),
             )
             session.current_message = content[:1200]
         session.ai_model = model

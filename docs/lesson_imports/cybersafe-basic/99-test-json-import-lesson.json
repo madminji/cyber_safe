@@ -1,0 +1,158 @@
+{
+  "course_slug": "cybersafe-basic",
+  "lesson_slug": "test-json-import-lesson",
+  "module": {
+    "slug": "admin-import-test",
+    "title": {
+      "ru": "Тест импорта",
+      "uz": "Import testi"
+    }
+  },
+  "order": 99,
+  "title": {
+    "ru": "Тестовый урок через JSON",
+    "uz": "JSON orqali test darsi"
+  },
+  "summary": {
+    "ru": "Короткий тестовый урок для проверки загрузки через вкладку модерации.",
+    "uz": "Ushbu dars JSON import funksiyasini tekshirish uchun qo‘shilgan."
+  },
+  "content": {
+    "ru": "Этот урок создан для проверки JSON-импорта. После загрузки он должен появиться в курсе Basic.",
+    "uz": "Maqsad\n\nUshbu dars JSON import funksiyasini tekshirish uchun qo‘shilgan.\n\nNazariya\n\nBu dars platformaga darslarni JSON fayl orqali yuklash va qayta yuklashda dublikat yaratmasdan yangilashni tekshiradi.\n\nXavfsiz algoritm\n\nShoshilmang, manbani tekshiring, maxfiy kodlarni bermang va muhim amallarni faqat rasmiy kanal orqali bajaring."
+  },
+  "blocks": [
+    {
+      "type": "definition",
+      "order": 1,
+      "title": {
+        "ru": "Определение",
+        "uz": "Ta’rif"
+      },
+      "body": {
+        "ru": "JSON-импорт — это способ загрузить урок на сайт из заранее подготовленного файла.",
+        "uz": "JSON orqali test darsi — foydalanuvchi pul, ma’lumot yoki akkaunt xavfsizligiga ta’sir qiladigan holatlarni to‘g‘ri baholash mavzusidir."
+      }
+    },
+    {
+      "type": "warning",
+      "order": 2,
+      "title": {
+        "ru": "Важно",
+        "uz": "Xavf belgilari"
+      },
+      "body": {
+        "ru": "Если lesson_slug уже существует в этом курсе, урок будет обновлён, а не создан заново.",
+        "uz": "Quyidagi belgilar xavfni bildiradi: shoshirish, qo‘rqitish, maxfiy kod so‘rash, noma’lum havola yoki ilova yuborish."
+      }
+    },
+    {
+      "type": "checklist",
+      "order": 3,
+      "title": {
+        "ru": "Проверка после загрузки",
+        "uz": "Xavfsiz algoritm"
+      },
+      "body": {
+        "ru": "",
+        "uz": "Harakat qilishdan oldin to‘xtang, manbani tekshiring va maxfiy ma’lumotlarni hech kimga bermang."
+      },
+      "items": [
+        {
+          "ru": "Открыть курс Basic",
+          "uz": "To‘xtang va vaziyatni tekshiring."
+        },
+        {
+          "ru": "Найти урок с номером 99",
+          "uz": "Rasmiy manba orqali tasdiqlang."
+        },
+        {
+          "ru": "Открыть урок и проверить блоки",
+          "uz": "Maxfiy kod va parollarni bermang."
+        },
+        {
+          "ru": "Ответить на мини-тест",
+          "uz": "Dalillarni saqlang."
+        }
+      ]
+    },
+    {
+      "type": "materials",
+      "order": 4,
+      "title": {
+        "ru": "Дополнительные материалы",
+        "uz": "Qo‘shimcha materiallar"
+      },
+      "body": {
+        "ru": "",
+        "uz": "Bu dars platformaga darslarni JSON fayl orqali yuklash va qayta yuklashda dublikat yaratmasdan yangilashni tekshiradi."
+      },
+      "links": [
+        {
+          "title": "CyberSafe lesson import example",
+          "url": "https://example.com/cybersafe-json-import"
+        }
+      ]
+    }
+  ],
+  "tasks": [
+    {
+      "type": "text",
+      "order": 1,
+      "title": {
+        "ru": "Мини-задание",
+        "uz": "Topshiriq 1"
+      },
+      "instruction": {
+        "ru": "Напишите одно правило безопасной загрузки учебных материалов.",
+        "uz": "O‘zingiz uchun qisqa va aniq xavfsizlik qoidasini yozing."
+      },
+      "data": {}
+    }
+  ],
+  "quiz": [
+    {
+      "order": 1,
+      "text": {
+        "ru": "Что произойдёт, если повторно загрузить JSON с тем же lesson_slug?",
+        "uz": "Ushbu vaziyatda eng xavfsiz harakat qaysi?"
+      },
+      "choices": [
+        {
+          "order": 1,
+          "text": {
+            "ru": "Создастся дубль урока",
+            "uz": "Havolani darhol ochish"
+          },
+          "is_correct": false
+        },
+        {
+          "order": 2,
+          "text": {
+            "ru": "Существующий урок обновится",
+            "uz": "Rasmiy kanal orqali tekshirish va maxfiy ma’lumotlarni bermaslik"
+          },
+          "is_correct": true
+        },
+        {
+          "order": 3,
+          "text": {
+            "ru": "Удалится весь курс",
+            "uz": "SMS-kodni suhbatdoshga aytish"
+          },
+          "is_correct": false
+        }
+      ],
+      "explanation": {
+        "ru": "Импорт ищет урок по course_slug и lesson_slug. Если урок найден, он обновляется без создания дубля.",
+        "uz": "Eng xavfsiz yo‘l — rasmiy kanal orqali tekshirish va maxfiy kod, parol yoki karta ma’lumotlarini bermaslik."
+      }
+    }
+  ],
+  "video_url": {
+    "ru": "",
+    "uz": ""
+  },
+  "duration_minutes": 5,
+  "is_published": true
+}

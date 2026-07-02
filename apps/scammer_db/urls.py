@@ -5,6 +5,7 @@ from .views import (
     CreateReportView,
     ModerateReportView,
     ModerationSummaryView,
+    ModeratorNumberListView,
     ModeratorReportListView,
     MyReportListView,
     ScammerStatsView,
@@ -20,6 +21,11 @@ urlpatterns = [
         "moderation/reports/",
         ModeratorReportListView.as_view(),
         name="scammer-moderation-list",
+    ),
+    path(
+        "moderation/numbers/",
+        ModeratorNumberListView.as_view(),
+        name="scammer-moderation-number-list",
     ),
     path(
         "moderation/summary/",

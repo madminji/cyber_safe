@@ -125,6 +125,42 @@ class ModeratorReportSerializer(MyReportSerializer):
         return obj.scammer_number.status == ScammerNumber.Status.VERIFIED_SCAMMER
 
 
+class ModerationNumberSerializer(serializers.ModelSerializer):
+    number_id = serializers.UUIDField(source="id")
+    scam_types = serializers.SerializerMethodField()
+    latest_reports = serializers.SerializerMethodField()
+    number_verified = serializers.SerializerMethodField()
+
+    class Meta:
+        model = ScammerNumber
+        fields = (
+            "number_id",
+            "phone_masked",
+            "status",
+            "approved_reports_count",
+            "number_verified",
+            "scam_types",
+            "first_reported_at",
+            "last_reported_at",
+            "verified_at",
+            "latest_reports",
+        )
+
+    def get_scam_types(self, obj) -> list[str]:
+        return list(
+            obj.reports.filter(status=CommunityReport.Status.APPROVED)
+            .values_list("scam_type", flat=True)
+            .distinct()
+        )
+
+    def get_latest_reports(self, obj) -> list[dict]:
+        reports = obj.reports.select_related("user").order_by("-created_at")[:5]
+        return ModeratorReportSerializer(reports, many=True).data
+
+    def get_number_verified(self, obj) -> bool:
+        return obj.status == ScammerNumber.Status.VERIFIED_SCAMMER
+
+
 class ModerateReportSerializer(serializers.Serializer):
     status = serializers.ChoiceField(
         choices=(

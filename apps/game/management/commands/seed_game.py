@@ -16,6 +16,7 @@ SCENARIOS = [
             "pul o‘tkazishga majburlashga urinadi."
         ),
         "scam_type": "bank_call",
+        "interface_type": "call",
         "difficulty": "easy",
         "order": 1,
         "steps": [
@@ -139,6 +140,7 @@ SCENARIOS = [
             "telefonga kirishga urinadi."
         ),
         "scam_type": "malware",
+        "interface_type": "chat",
         "difficulty": "medium",
         "order": 2,
         "steps": [
@@ -221,6 +223,7 @@ SCENARIOS = [
         "description_ru": "Сообщение от взломанного знакомого ведёт на поддельный вход в Telegram.",
         "description_uz": "Buzilgan tanish akkauntidan kelgan xabar Telegramning soxta kirish sahifasiga olib boradi.",
         "scam_type": "account_takeover",
+        "interface_type": "chat",
         "difficulty": "medium",
         "order": 3,
         "steps": [
@@ -291,6 +294,7 @@ SCENARIOS = [
         "description_ru": "Покупатель уводит продавца из маркетплейса и присылает фальшивый чек.",
         "description_uz": "Xaridor sotuvchini marketpleysdan tashqariga olib chiqib, soxta chek yuboradi.",
         "scam_type": "marketplace",
+        "interface_type": "website",
         "difficulty": "medium",
         "order": 4,
         "steps": [
@@ -361,6 +365,7 @@ SCENARIOS = [
         "description_ru": "Знакомый голос сообщает об аварии и требует срочный перевод.",
         "description_uz": "Tanish ovoz avariya haqida aytib, zudlik bilan pul o‘tkazishni talab qiladi.",
         "scam_type": "ai_impersonation",
+        "interface_type": "call",
         "difficulty": "hard",
         "order": 5,
         "steps": [

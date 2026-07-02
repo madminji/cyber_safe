@@ -7,8 +7,11 @@ import {
   Bot,
   BrainCircuit,
   CheckCircle2,
+  Globe2,
   LockKeyhole,
   MessageCircleWarning,
+  PhoneCall,
+  PhoneOff,
   RotateCcw,
   ShieldCheck,
   Sparkles,
@@ -20,6 +23,7 @@ import { useAuth } from "@/context/auth-context";
 import { useLanguage } from "@/context/language-context";
 import { api } from "@/lib/api";
 import { GameResult, GameScenario, GameState } from "@/lib/types";
+import { TranslationKey } from "@/lib/translations";
 
 type AnswerResponse = {
   feedback: string;
@@ -28,20 +32,15 @@ type AnswerResponse = {
   session: GameState;
 };
 
-const difficultyLabels = {
-  easy: "Легко",
-  medium: "Средне",
-  hard: "Сложно",
-};
-
 export default function SimulatorPage() {
   const { user, loading, reloadUser } = useAuth();
-  const { language } = useLanguage();
+  const { language, t } = useLanguage();
   const [scenarios, setScenarios] = useState<GameScenario[]>([]);
   const [game, setGame] = useState<GameState | null>(null);
   const [result, setResult] = useState<GameResult | null>(null);
   const [feedback, setFeedback] = useState("");
   const [feedbackPositive, setFeedbackPositive] = useState(true);
+  const [customAnswer, setCustomAnswer] = useState("");
   const [busy, setBusy] = useState(true);
   const [error, setError] = useState("");
 
@@ -59,6 +58,7 @@ export default function SimulatorPage() {
     setError("");
     setResult(null);
     setFeedback("");
+    setCustomAnswer("");
     try {
       setGame(
         await api<GameState>("/game/sessions/", {
@@ -77,8 +77,13 @@ export default function SimulatorPage() {
     }
   };
 
-  const answer = async (choiceId: string) => {
+  const answer = async (choiceId?: string) => {
     if (!game) return;
+    const freeText = customAnswer.trim();
+    if (!choiceId && freeText.length < 2) {
+      setError("Напишите ответ или выберите одну из готовых стратегий.");
+      return;
+    }
     setBusy(true);
     setError("");
     try {
@@ -87,12 +92,16 @@ export default function SimulatorPage() {
         {
           method: "POST",
           auth: true,
-          body: JSON.stringify({ choice_id: choiceId }),
+          body: JSON.stringify({
+            ...(choiceId ? { choice_id: choiceId } : {}),
+            custom_text: freeText,
+          }),
         },
       );
       setFeedback(response.feedback);
       setFeedbackPositive(response.choice_points > 0);
       setGame(response.session);
+      setCustomAnswer("");
       if (response.completed) {
         const completedResult = await api<GameResult>(
           `/game/sessions/${game.id}/result/`,
@@ -112,24 +121,31 @@ export default function SimulatorPage() {
     setGame(null);
     setResult(null);
     setFeedback("");
+    setCustomAnswer("");
     setError("");
+  };
+
+  const difficultyLabels = {
+    easy: t("common.easy"),
+    medium: t("common.medium"),
+    hard: t("common.hard"),
   };
 
   if (result) {
     const level = {
       expert: {
-        title: "Атаку отражено",
-        text: "Вы распознали давление и не передали контроль мошеннику.",
+        title: t("sim.expertTitle"),
+        text: t("sim.expertText"),
         icon: <ShieldCheck />,
       },
       resistant: {
-        title: "Хорошая устойчивость",
-        text: "Большинство уловок распознано, но несколько решений были рискованными.",
+        title: t("sim.resistantTitle"),
+        text: t("sim.resistantText"),
         icon: <BrainCircuit />,
       },
       vulnerable: {
-        title: "Нужна практика",
-        text: "Некоторые манипуляции сработали. Разберите диалог перед новой попыткой.",
+        title: t("sim.vulnerableTitle"),
+        text: t("sim.vulnerableText"),
         icon: <AlertTriangle />,
       },
     }[result.level];
@@ -139,25 +155,29 @@ export default function SimulatorPage() {
         <div className="container simulator-container">
           <div className={`game-result-card ${result.level}`}>
             <span className="game-result-icon">{level.icon}</span>
-            <span className="eyebrow">Симуляция завершена</span>
+            <span className="eyebrow">{t("sim.completed")}</span>
             <h1>{level.title}</h1>
             <div className="game-score">{result.score_percent}%</div>
             <p>{level.text}</p>
-            <strong>+{result.points_awarded} баллов защиты</strong>
+            <strong>
+              +{result.points_awarded} {t("sim.points")}
+            </strong>
             <button className="button button-primary" onClick={reset}>
-              <RotateCcw size={17} /> Другой сценарий
+              <RotateCcw size={17} /> {t("sim.other")}
             </button>
           </div>
 
           <div className="game-review">
-            <h2>Разбор диалога</h2>
+            <h2>{t("sim.review")}</h2>
             {result.ai_analysis && (
               <div className="ai-coach-card">
                 <span>
-                  <Sparkles size={17} /> AI-разбор
+                  <Sparkles size={17} /> {t("sim.aiReview")}
                 </span>
                 <p>{result.ai_analysis}</p>
-                <small>Модель: {result.ai_model}</small>
+                <small>
+                  {t("sim.model")}: {result.ai_model}
+                </small>
               </div>
             )}
             {result.turns.map((turn) => (
@@ -167,8 +187,14 @@ export default function SimulatorPage() {
                   <span className="tactic-label">{turn.tactic}</span>
                   <p className="scammer-line">{turn.message}</p>
                   <p>
-                    <strong>Ваш ответ:</strong> {turn.answer}
+                    <strong>{t("sim.yourAnswer")}</strong> {turn.answer}
                   </p>
+                  {turn.selected_safe_intent !== turn.answer && (
+                    <p className="turn-intent">
+                      <strong>{t("sim.selectedIntent")}</strong>{" "}
+                      {turn.selected_safe_intent}
+                    </p>
+                  )}
                   <p className="turn-feedback">{turn.feedback}</p>
                 </div>
               </article>
@@ -187,31 +213,84 @@ export default function SimulatorPage() {
       <section className="page-section simulator-page">
         <div className="container simulator-container">
           <button className="back-button game-back" onClick={reset}>
-            <ArrowLeft size={17} /> Выбрать другой сценарий
+            <ArrowLeft size={17} /> {t("sim.chooseOther")}
           </button>
           <div className="game-shell">
             <div className="game-header">
               <div>
                 <span className="live-dot" />
-                Симуляция: {game.scenario_title}
+                {t("sim.simulation")}: {game.scenario_title}
               </div>
               <span>
-                Ход {game.step_number} из {game.total_steps}
+                {t("sim.step", {
+                  current: game.step_number || 0,
+                  total: game.total_steps,
+                })}
               </span>
             </div>
             <div className="progress-track game-progress">
               <span style={{ width: `${progress}%` }} />
             </div>
 
-            <div className="chat-stage">
-              <div className="caller-avatar">
-                <Bot size={32} />
-              </div>
-              <div className="scammer-message">
-                <small>Неизвестный собеседник</small>
+            {game.interface_type === "call" ? (
+              <div className="call-stage">
+                <div className="call-pulse">
+                  <PhoneCall size={42} />
+                </div>
+                <small>{t("sim.incomingCall")}</small>
+                <h2>{t("sim.callerUnknown")}</h2>
+                <span>+998 •• ••• •• ••</span>
                 <p>{game.message}</p>
+                <div className="call-security-note">
+                  <ShieldCheck size={15} /> {t("sim.secureNotice")}
+                </div>
+                <button
+                  type="button"
+                  className="hangup-button"
+                  aria-label={t("sim.chooseOther")}
+                  onClick={reset}
+                >
+                  <PhoneOff />
+                </button>
               </div>
-            </div>
+            ) : game.interface_type === "website" ? (
+              <div className="website-stage">
+                <div className="fake-browser-bar">
+                  <span />
+                  <span />
+                  <span />
+                  <div>
+                    <Globe2 size={14} /> payme-secure-check.example
+                  </div>
+                </div>
+                <div className="website-warning">
+                  <AlertTriangle size={17} /> {t("sim.browserWarning")}
+                </div>
+                <div className="fake-website-card">
+                  <ShieldCheck size={38} />
+                  <h2>{game.scenario_title}</h2>
+                  <p>{game.message}</p>
+                </div>
+              </div>
+            ) : (
+              <div className="messenger-stage">
+                <div className="messenger-topbar">
+                  <div className="caller-avatar">
+                    <Bot size={28} />
+                  </div>
+                  <div>
+                    <strong>{t("sim.unknown")}</strong>
+                    <small>online</small>
+                  </div>
+                </div>
+                <div className="chat-stage">
+                  <div className="scammer-message">
+                    <small>Telegram</small>
+                    <p>{game.message}</p>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {feedback && (
               <div
@@ -227,7 +306,30 @@ export default function SimulatorPage() {
             )}
 
             <div className="game-choices">
-              <span>Как вы ответите?</span>
+              <span>{t("sim.answerPrompt")}</span>
+              <label className="custom-answer-box">
+                <span>{t("sim.customAnswerLabel")}</span>
+                <textarea
+                  value={customAnswer}
+                  onChange={(event) => setCustomAnswer(event.target.value)}
+                  maxLength={600}
+                  disabled={busy}
+                  placeholder={t("sim.customAnswerPlaceholder")}
+                  rows={3}
+                />
+                <small>{t("sim.customAnswerHelp")}</small>
+              </label>
+              <button
+                className="button button-primary button-wide"
+                disabled={busy || customAnswer.trim().length < 2}
+                onClick={() => answer()}
+              >
+                Отправить ответ <ArrowRight size={17} />
+              </button>
+              <span className="strategy-helper">
+                Не уверены? Выберите готовую стратегию ниже — она поможет системе
+                оценить ваш ответ.
+              </span>
               {game.choices.map((choice) => (
                 <button
                   key={choice.id}
@@ -252,13 +354,10 @@ export default function SimulatorPage() {
       <div className="container">
         <div className="section-heading compact">
           <span className="eyebrow">
-            <Sparkles size={15} /> Безопасная тренировка
+            <Sparkles size={15} /> {t("sim.eyebrow")}
           </span>
-          <h1>Симулятор мошеннических атак</h1>
-          <p>
-            Пройдите реалистичный диалог и проверьте, сможете ли вы распознать
-            давление до передачи денег или секретных данных.
-          </p>
+          <h1>{t("sim.title")}</h1>
+          <p>{t("sim.lead")}</p>
         </div>
 
         {!loading && !user ? (
@@ -266,29 +365,40 @@ export default function SimulatorPage() {
             <span className="empty-icon">
               <LockKeyhole />
             </span>
-            <h2>Для симуляции нужен вход</h2>
-            <p>Результаты и баллы сохраняются в личном кабинете.</p>
+            <h2>{t("sim.loginTitle")}</h2>
+            <p>{t("sim.loginText")}</p>
             <Link className="button button-primary" href="/login">
-              Войти
+              {t("common.login")}
             </Link>
           </div>
         ) : busy ? (
           <div className="loading-card">
-            <span className="loader" /> Загружаем сценарии...
+            <span className="loader" /> {t("sim.loading")}
           </div>
         ) : (
           <div className="scenario-grid">
             {scenarios.map((scenario, index) => (
               <article className="scenario-card" key={scenario.id}>
                 <div className={`scenario-visual scenario-${index + 1}`}>
-                  {scenario.scam_type === "malware" ? (
+                  {scenario.interface_type === "call" ? (
+                    <PhoneCall />
+                  ) : scenario.interface_type === "website" ? (
+                    <Globe2 />
+                  ) : scenario.scam_type === "malware" ? (
                     <MessageCircleWarning />
                   ) : (
                     <Bot />
                   )}
-                  <span>{scenario.steps_count} хода</span>
+                  <span>
+                    {scenario.steps_count} {t("sim.steps")}
+                  </span>
                 </div>
                 <div>
+                  <span className="scenario-interface">
+                    {t(
+                      `sim.mode.${scenario.interface_type}` as TranslationKey,
+                    )}
+                  </span>
                   <span className="scenario-difficulty">
                     {difficultyLabels[scenario.difficulty]}
                   </span>
@@ -298,7 +408,7 @@ export default function SimulatorPage() {
                     className="button button-primary button-wide"
                     onClick={() => start(scenario)}
                   >
-                    Начать симуляцию <ArrowRight size={17} />
+                    {t("sim.start")} <ArrowRight size={17} />
                   </button>
                 </div>
               </article>

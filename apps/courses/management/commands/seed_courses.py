@@ -22,6 +22,8 @@ COURSES = [
             {
                 "title_ru": "Почему мошенничество работает",
                 "title_uz": "Firibgarlik nega ishlaydi",
+                "module_title_ru": "Модуль 1. Психология и защита данных",
+                "module_title_uz": "1-modul. Psixologiya va ma’lumotlarni himoya qilish",
                 "summary_ru": "Срочность, страх и авторитет как инструменты давления.",
                 "summary_uz": "Shoshilish, qo‘rquv va obro‘ orqali bosim o‘tkazish.",
                 "content_ru": (
@@ -30,14 +32,27 @@ COURSES = [
                     "или представляются сотрудником банка. Главная защита — сделать "
                     "паузу, завершить разговор и проверить информацию самостоятельно.\n\n"
                     "Никогда не принимайте финансовое решение под давлением. "
-                    "Настоящая организация позволит вам перезвонить по официальному номеру."
+                    "Настоящая организация позволит вам перезвонить по официальному номеру.\n\n"
+                    "Типичная атака состоит из четырёх этапов: мошенник вызывает сильную "
+                    "эмоцию, изолирует человека от советов, требует немедленного действия "
+                    "и просит сохранить разговор в тайне. Если совпали хотя бы два этапа, "
+                    "остановитесь и проверьте информацию через независимый канал.\n\n"
+                    "Практическое правило: положите трубку, сделайте паузу минимум на одну "
+                    "минуту, самостоятельно найдите официальный номер организации и "
+                    "перескажите ситуацию другому человеку."
                 ),
                 "content_uz": (
                     "Firibgarlar ko‘pincha texnik buzishdan emas, hissiyotlarni "
                     "boshqarishdan boshlaydi: shoshiradi, hisob bloklanishi bilan "
                     "qo‘rqitadi yoki bank xodimi sifatida tanishtiradi.\n\n"
                     "Bosim ostida moliyaviy qaror qabul qilmang. Suhbatni tugatib, "
-                    "rasmiy raqam orqali ma’lumotni tekshiring."
+                    "rasmiy raqam orqali ma’lumotni tekshiring.\n\n"
+                    "Odatdagi hujum to‘rt bosqichdan iborat: kuchli hissiyot uyg‘otish, "
+                    "odamni maslahatdan ajratish, zudlik bilan harakat talab qilish va "
+                    "suhbatni sir saqlashni so‘rash. Kamida ikki belgi mos kelsa, "
+                    "to‘xtang va ma’lumotni mustaqil kanal orqali tekshiring.\n\n"
+                    "Amaliy qoida: qo‘ng‘iroqni tugating, kamida bir daqiqa tanaffus "
+                    "qiling, rasmiy raqamni o‘zingiz toping va vaziyatni boshqa odamga ayting."
                 ),
                 "duration_minutes": 6,
                 "question": {
@@ -65,6 +80,8 @@ COURSES = [
             {
                 "title_ru": "SMS-коды и банковские данные",
                 "title_uz": "SMS kodlar va bank ma’lumotlari",
+                "module_title_ru": "Модуль 1. Психология и защита данных",
+                "module_title_uz": "1-modul. Psixologiya va ma’lumotlarni himoya qilish",
                 "summary_ru": "Какие данные нельзя сообщать даже сотруднику банка.",
                 "summary_uz": "Hatto bank xodimiga ham aytib bo‘lmaydigan ma’lumotlar.",
                 "content_ru": (
@@ -72,13 +89,25 @@ COURSES = [
                     "от вашего имени. Сотруднику банка эти данные не нужны. Если их "
                     "запрашивают, перед вами мошенник.\n\n"
                     "Не отправляйте скриншоты банковского приложения и не включайте "
-                    "демонстрацию экрана по просьбе неизвестного человека."
+                    "демонстрацию экрана по просьбе неизвестного человека.\n\n"
+                    "Номер карты иногда нужен для получения перевода, но срок действия, "
+                    "CVV, PIN, пароль приложения и код подтверждения никогда не нужны "
+                    "отправителю денег. Код из SMS обычно подтверждает вход, кредит или "
+                    "списание — читайте полный текст SMS перед любым действием.\n\n"
+                    "Включите уведомления обо всех операциях, установите отдельный лимит "
+                    "для интернет-платежей и не храните фотографию карты в галерее телефона."
                 ),
                 "content_uz": (
                     "SMS kodi, PIN, CVV va parol sizning nomingizdan operatsiyani "
                     "tasdiqlash imkonini beradi. Bank xodimiga bu ma’lumotlar kerak emas.\n\n"
                     "Bank ilovasi skrinshotlarini yubormang va notanish odam so‘rasa "
-                    "ekran namoyishini yoqmang."
+                    "ekran namoyishini yoqmang.\n\n"
+                    "Pul olish uchun ba’zan karta raqami kerak bo‘lishi mumkin, ammo amal "
+                    "qilish muddati, CVV, PIN, ilova paroli va tasdiqlash kodi kerak emas. "
+                    "SMS matnini to‘liq o‘qing: kod kirish, kredit yoki pul yechishni "
+                    "tasdiqlashi mumkin.\n\n"
+                    "Barcha operatsiyalar bildirishnomasini yoqing, internet to‘lovlari "
+                    "uchun alohida limit belgilang va karta rasmini telefon galereyasida saqlamang."
                 ),
                 "duration_minutes": 7,
                 "question": {
@@ -96,19 +125,34 @@ COURSES = [
             {
                 "title_ru": "Опасные ссылки и приложения",
                 "title_uz": "Xavfli havolalar va ilovalar",
+                "module_title_ru": "Модуль 2. Каналы цифровой атаки",
+                "module_title_uz": "2-modul. Raqamli hujum kanallari",
                 "summary_ru": "Фишинговые домены, APK-файлы и поддельные страницы входа.",
                 "summary_uz": "Fishing domenlar, APK fayllar va soxta kirish sahifalari.",
                 "content_ru": (
                     "Проверяйте точное доменное имя, а не только логотип и значок замка. "
                     "Мошеннический сайт тоже может использовать HTTPS.\n\n"
                     "Не устанавливайте APK-файлы из Telegram и сообщений. Приложения "
-                    "банков загружаются только из официальных магазинов."
+                    "банков загружаются только из официальных магазинов.\n\n"
+                    "Проверяйте домен справа налево: в адресе payme.example.com владельцем "
+                    "является example.com, а слово payme — только поддомен. Символ @, "
+                    "необычно длинный адрес, IP вместо домена и сокращатель ссылок требуют "
+                    "дополнительной проверки.\n\n"
+                    "Перед установкой приложения проверьте разработчика, количество "
+                    "загрузок и запрашиваемые разрешения. Доступ к SMS, уведомлениям и "
+                    "специальным возможностям особенно опасен для банковских операций."
                 ),
                 "content_uz": (
                     "Faqat logotip va qulf belgisini emas, aniq domen nomini tekshiring. "
                     "Firibgar sayt ham HTTPS ishlatishi mumkin.\n\n"
                     "Telegram va xabarlardan APK fayllarni o‘rnatmang. Bank ilovalari "
-                    "faqat rasmiy do‘konlardan yuklanadi."
+                    "faqat rasmiy do‘konlardan yuklanadi.\n\n"
+                    "Domenni o‘ngdan chapga tekshiring: payme.example.com manzilida egasi "
+                    "example.com, payme esa faqat subdomen. @ belgisi, juda uzun manzil, "
+                    "domen o‘rnidagi IP va qisqartirilgan havola qo‘shimcha tekshiruv talab qiladi.\n\n"
+                    "Ilova o‘rnatishdan oldin ishlab chiquvchi, yuklab olishlar soni va "
+                    "ruxsatlarni tekshiring. SMS, bildirishnoma va maxsus imkoniyatlarga "
+                    "kirish bank operatsiyalari uchun ayniqsa xavfli."
                 ),
                 "duration_minutes": 8,
                 "question": {
@@ -130,6 +174,8 @@ COURSES = [
             {
                 "title_ru": "Если вы уже стали жертвой",
                 "title_uz": "Agar siz jabrlangan bo‘lsangiz",
+                "module_title_ru": "Модуль 4. Реагирование на инцидент",
+                "module_title_uz": "4-modul. Hodisaga javob berish",
                 "summary_ru": "Первые действия для ограничения ущерба.",
                 "summary_uz": "Zararni cheklash uchun birinchi harakatlar.",
                 "content_ru": (
@@ -161,6 +207,8 @@ COURSES = [
             {
                 "title_ru": "Telegram и захват аккаунта",
                 "title_uz": "Telegram va akkauntni egallash",
+                "module_title_ru": "Модуль 2. Каналы цифровой атаки",
+                "module_title_uz": "2-modul. Raqamli hujum kanallari",
                 "summary_ru": "Коды входа, QR-авторизация и просьбы от взломанных знакомых.",
                 "summary_uz": "Kirish kodlari, QR avtorizatsiya va buzilgan tanishlar so‘rovlari.",
                 "content_ru": (
@@ -195,6 +243,8 @@ COURSES = [
             {
                 "title_ru": "Маркетплейсы, доставка и поддельные чеки",
                 "title_uz": "Marketpleys, yetkazib berish va soxta cheklar",
+                "module_title_ru": "Модуль 3. Деньги, покупки и инвестиции",
+                "module_title_uz": "3-modul. Pul, xarid va investitsiyalar",
                 "summary_ru": "Фальшивые покупатели, курьерские ссылки и изображения оплаты.",
                 "summary_uz": "Soxta xaridorlar, kuryer havolalari va to‘lov rasmlari.",
                 "content_ru": (
@@ -227,6 +277,8 @@ COURSES = [
             {
                 "title_ru": "Фальшивые выплаты, работа и инвестиции",
                 "title_uz": "Soxta to‘lovlar, ish va investitsiyalar",
+                "module_title_ru": "Модуль 3. Деньги, покупки и инвестиции",
+                "module_title_uz": "3-modul. Pul, xarid va investitsiyalar",
                 "summary_ru": "Субсидии по ссылке, задания с депозитом и гарантированная прибыль.",
                 "summary_uz": "Havoladagi subsidiya, depozitli topshiriq va kafolatlangan foyda.",
                 "content_ru": (
@@ -261,6 +313,8 @@ COURSES = [
             {
                 "title_ru": "ИИ, поддельный голос и удалённый доступ",
                 "title_uz": "SI, soxta ovoz va masofaviy kirish",
+                "module_title_ru": "Модуль 4. Реагирование на инцидент",
+                "module_title_uz": "4-modul. Hodisaga javob berish",
                 "summary_ru": "Почему знакомого голоса уже недостаточно и чем опасен AnyDesk.",
                 "summary_uz": "Nega tanish ovoz yetarli emas va AnyDesk nimasi bilan xavfli.",
                 "content_ru": (
@@ -324,13 +378,10 @@ class Command(BaseCommand):
                     order=order,
                     defaults={**lesson_defaults, "is_published": True},
                 )
-                question, _ = LessonQuestion.objects.update_or_create(
+                lesson.questions.all().delete()
+                question = LessonQuestion.objects.create(
                     lesson=lesson,
-                    defaults={
-                        key: value
-                        for key, value in question_data.items()
-                        if key != "choices"
-                    },
+                    **{key: value for key, value in question_data.items() if key != "choices"},
                 )
                 for choice_order, (text_ru, text_uz, is_correct) in enumerate(
                     question_data["choices"],

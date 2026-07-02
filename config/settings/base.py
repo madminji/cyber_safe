@@ -30,6 +30,7 @@ INSTALLED_APPS = [
     "apps.analyzer",
     "apps.courses",
     "apps.game",
+    "apps.webgame",
 ]
 
 MIDDLEWARE = [
@@ -165,6 +166,7 @@ ANALYZER_REQUEST_LIMIT = 10
 ANALYZER_REQUEST_WINDOW_SECONDS = 3600
 
 QUIZ_QUESTION_COUNT = 10
+DAILY_QUIZ_QUESTION_COUNT = 5
 QUIZ_SESSION_TTL_SECONDS = 3600
 PUBLIC_SITE_URL = config("PUBLIC_SITE_URL", default="http://localhost:8000")
 OPENROUTER_API_KEY = config("OPENROUTER_API_KEY", default="")

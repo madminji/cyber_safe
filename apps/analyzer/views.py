@@ -23,14 +23,20 @@ def client_ip(request):
     return forwarded.split(",", 1)[0].strip() or request.META.get("REMOTE_ADDR", "unknown")
 
 
-def response_data(log, result):
+PRIVACY_MESSAGES = {
+    "ru": "Содержимое не сохранено. В журнал записан только необратимый хэш.",
+    "uz": "Mazmun saqlanmadi. Jurnalga faqat qaytarib bo‘lmaydigan xesh yozildi.",
+}
+
+
+def response_data(log, result, language):
     return {
         "analysis_id": log.id,
         "verdict": result.verdict,
         "risk_score": result.risk_score,
         "reasons": result.reasons,
         "signals": result.signals,
-        "privacy": "Содержимое не сохранено. В журнал записан только необратимый хэш.",
+        "privacy": PRIVACY_MESSAGES[language],
     }
 
 
@@ -45,14 +51,15 @@ class URLAnalysisView(GenericAPIView):
         ip_hash = stable_hash(client_ip(request))
         enforce_rate_limit(ip_hash)
         content = serializer.validated_data["url"]
-        result = analyze_url_value(content)
+        language = serializer.validated_data["language"]
+        result = analyze_url_value(content, language=language)
         log = save_analysis(
             content=content,
             content_type=AnalysisLog.ContentType.URL,
             ip_hash=ip_hash,
             result=result,
         )
-        return Response(response_data(log, result))
+        return Response(response_data(log, result, language))
 
 
 class SMSAnalysisView(GenericAPIView):
@@ -66,12 +73,12 @@ class SMSAnalysisView(GenericAPIView):
         ip_hash = stable_hash(client_ip(request))
         enforce_rate_limit(ip_hash)
         content = serializer.validated_data["text"]
-        result = analyze_sms_value(content)
+        language = serializer.validated_data["language"]
+        result = analyze_sms_value(content, language=language)
         log = save_analysis(
             content=content,
             content_type=AnalysisLog.ContentType.SMS,
             ip_hash=ip_hash,
             result=result,
         )
-        return Response(response_data(log, result))
-
+        return Response(response_data(log, result, language))

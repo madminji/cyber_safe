@@ -12,6 +12,7 @@ urlpatterns = [
     path("api/v1/analyzer/", include("apps.analyzer.urls")),
     path("api/v1/courses/", include("apps.courses.urls")),
     path("api/v1/game/", include("apps.game.urls")),
+    path("api/v1/webgame/", include("apps.webgame.urls")),
     path("api/schema/", SpectacularAPIView.as_view(), name="api-schema"),
     path("api/docs/", SpectacularSwaggerView.as_view(url_name="api-schema"), name="api-docs"),
 ]

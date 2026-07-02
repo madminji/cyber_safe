@@ -33,7 +33,11 @@ def test_scenario_list_is_public(scenario):
     response = APIClient().get(reverse("game-scenarios"))
 
     assert response.status_code == 200
-    assert response.data[0]["steps_count"] >= 2
+    scenario_data = next(
+        item for item in response.data if item["id"] == str(scenario.id)
+    )
+    assert scenario_data["steps_count"] >= 2
+    assert scenario_data["interface_type"] == GameScenario.InterfaceType.CALL
     assert "points" not in str(response.data)
 
 
@@ -58,12 +62,16 @@ def test_safe_choices_complete_game_and_award_points_once(scenario, user):
     )
     session_id = started.data["id"]
     state = started.data
+    assert state["interface_type"] == GameScenario.InterfaceType.CALL
     while state["status"] == GameSession.Status.ACTIVE:
         current_step = scenario.steps.get(order=state["step_number"])
         safest = current_step.choices.order_by("-points").first()
         response = client.post(
             reverse("game-answer", kwargs={"session_id": session_id}),
-            {"choice_id": safest.id},
+            {
+                "choice_id": safest.id,
+                "custom_text": "Я не буду называть код и сам позвоню в банк.",
+            },
             format="json",
         )
         assert response.status_code == 200
@@ -73,6 +81,10 @@ def test_safe_choices_complete_game_and_award_points_once(scenario, user):
     assert result.status_code == 200
     assert result.data["score_percent"] == 100
     assert result.data["level"] == "expert"
+    assert result.data["turns"][0]["answer"] == (
+        "Я не буду называть код и сам позвоню в банк."
+    )
+    assert result.data["turns"][0]["selected_safe_intent"]
     user.refresh_from_db()
     assert user.points == result.data["points_awarded"]
 
@@ -125,4 +137,3 @@ def test_other_user_cannot_access_session(scenario, user):
     )
 
     assert response.status_code == 404
-

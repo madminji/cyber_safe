@@ -8,14 +8,15 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "CyberSafe Uzbekistan",
-  description: "Платформа цифровой безопасности граждан Узбекистана",
+  description:
+    "CyberSafe Uzbekistan — raqamli xavfsizlik / цифровая безопасность",
 };
 
 export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="ru">
+    <html lang="ru" suppressHydrationWarning>
       <body>
         <Providers>
           <Header />

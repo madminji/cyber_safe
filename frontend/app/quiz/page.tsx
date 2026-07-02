@@ -10,16 +10,17 @@ import {
   X,
 } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { useLanguage } from "@/context/language-context";
 import { api } from "@/lib/api";
 import { QuizResult, QuizSession } from "@/lib/types";
+import { TranslationKey } from "@/lib/translations";
 
 type SelectedAnswers = Record<string, string>;
 
 export default function QuizPage() {
-  const { language } = useLanguage();
+  const { language, t } = useLanguage();
   const [session, setSession] = useState<QuizSession | null>(null);
   const [current, setCurrent] = useState(0);
   const [answers, setAnswers] = useState<SelectedAnswers>({});
@@ -98,16 +99,18 @@ export default function QuizPage() {
     }
   };
 
-  const levelLabel = useMemo(
-    () =>
-      ({
-        none: "Попробуйте ещё раз",
-        basic: "Базовый",
-        advanced: "Продвинутый",
-        expert: "Эксперт",
-      })[result?.level || "none"],
-    [result],
-  );
+  const levelLabel = {
+    none: t("quiz.tryAgain"),
+    basic: t("common.basic"),
+    advanced: t("common.advanced"),
+    expert: t("common.expert"),
+  }[result?.level || "none"];
+
+  const difficultyLabel = {
+    easy: t("common.easy"),
+    medium: t("common.medium"),
+    hard: t("common.hard"),
+  };
 
   if (result) {
     return (
@@ -118,12 +121,12 @@ export default function QuizPage() {
               <span>{result.score}</span>
               <small>%</small>
             </div>
-            <span className="eyebrow">Тест завершён</span>
+            <span className="eyebrow">{t("quiz.completed")}</span>
             <h1>{levelLabel}</h1>
             <p>
               {result.passed
-                ? "Отличная работа. Вы умеете замечать основные признаки цифрового мошенничества."
-                : "Некоторые уловки всё ещё опасны. Разберите ответы и попробуйте снова."}
+                ? t("quiz.passed")
+                : t("quiz.failed")}
             </p>
             <div className="result-actions">
               {result.certificate_id && (
@@ -131,17 +134,17 @@ export default function QuizPage() {
                   className="button button-primary"
                   href="/certificates"
                 >
-                  <Award size={18} /> Открыть сертификат
+                  <Award size={18} /> {t("quiz.certificate")}
                 </Link>
               )}
               <button className="button button-ghost" onClick={start}>
-                <RotateCcw size={17} /> Пройти снова
+                <RotateCcw size={17} /> {t("quiz.restart")}
               </button>
             </div>
           </div>
 
           <div className="answers-review">
-            <h2>Разбор ответов</h2>
+            <h2>{t("quiz.review")}</h2>
             {result.answers.map((answer, index) => (
               <article
                 key={answer.question_id}
@@ -152,8 +155,10 @@ export default function QuizPage() {
                 </span>
                 <div>
                   <strong>
-                    Вопрос {index + 1}:{" "}
-                    {answer.is_correct ? "верно" : "есть ошибка"}
+                    {t("quiz.question", { number: index + 1 })}:{" "}
+                    {answer.is_correct
+                      ? t("quiz.correct")
+                      : t("quiz.incorrect")}
                   </strong>
                   <p>{answer.explanation}</p>
                 </div>
@@ -170,8 +175,8 @@ export default function QuizPage() {
       <div className="container quiz-container">
         <div className="quiz-topline">
           <div>
-            <span className="eyebrow">Диагностика знаний</span>
-            <h1>Тест по цифровой безопасности</h1>
+            <span className="eyebrow">{t("quiz.eyebrow")}</span>
+            <h1>{t("quiz.title")}</h1>
           </div>
           {session && (
             <span className="question-counter">
@@ -188,13 +193,19 @@ export default function QuizPage() {
         {busy && !session ? (
           <div className="loading-card">
             <span className="loader" />
-            Формируем персональный набор вопросов...
+            {t("quiz.loading")}
           </div>
         ) : question ? (
           <div className="question-card">
             <div className="question-meta">
-              <span>{question.category.replaceAll("_", " ")}</span>
-              <span>{question.difficulty}</span>
+              <span>
+                {t(`quiz.category.${question.category}` as TranslationKey)}
+              </span>
+              <span>
+                {difficultyLabel[
+                  question.difficulty as keyof typeof difficultyLabel
+                ] || question.difficulty}
+              </span>
             </div>
             <h2>{question.text}</h2>
             <div className="choice-list">
@@ -226,7 +237,7 @@ export default function QuizPage() {
                 disabled={current === 0}
                 onClick={() => setCurrent((value) => value - 1)}
               >
-                <ArrowLeft size={17} /> Назад
+                <ArrowLeft size={17} /> {t("quiz.back")}
               </button>
               {session && current < session.question_count - 1 ? (
                 <button
@@ -234,7 +245,7 @@ export default function QuizPage() {
                   disabled={!selected}
                   onClick={() => setCurrent((value) => value + 1)}
                 >
-                  Далее <ArrowRight size={17} />
+                  {t("quiz.next")} <ArrowRight size={17} />
                 </button>
               ) : (
                 <button
@@ -242,7 +253,7 @@ export default function QuizPage() {
                   disabled={!canSubmit || busy}
                   onClick={submit}
                 >
-                  {busy ? "Проверяем..." : "Завершить тест"}
+                  {busy ? t("quiz.checking") : t("quiz.finish")}
                   <ArrowRight size={17} />
                 </button>
               )}
@@ -251,9 +262,9 @@ export default function QuizPage() {
         ) : (
           <div className="loading-card error-state">
             <CircleAlert />
-            <p>{error || "Не удалось загрузить вопросы."}</p>
+            <p>{error || t("quiz.loadError")}</p>
             <button className="button button-primary" onClick={start}>
-              Повторить
+              {t("quiz.retry")}
             </button>
           </div>
         )}

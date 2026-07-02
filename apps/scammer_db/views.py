@@ -13,6 +13,7 @@ from .serializers import (
     CreateReportSerializer,
     ModerateReportSerializer,
     ModerationSummarySerializer,
+    ModerationNumberSerializer,
     ModeratorReportSerializer,
     MyReportSerializer,
     NumberCheckSerializer,
@@ -83,6 +84,19 @@ class ModeratorReportListView(ListAPIView):
         if status in CommunityReport.Status.values:
             queryset = queryset.filter(status=status)
         return queryset
+
+
+class ModeratorNumberListView(ListAPIView):
+    permission_classes = [IsModeratorOrAdmin]
+    serializer_class = ModerationNumberSerializer
+    queryset = ScammerNumber.objects.none()
+
+    def get_queryset(self):
+        queryset = ScammerNumber.objects.prefetch_related("reports", "reports__user")
+        status = self.request.query_params.get("status")
+        if status in ScammerNumber.Status.values:
+            queryset = queryset.filter(status=status)
+        return queryset.order_by("-last_reported_at", "-created_at")
 
 
 class ModerationSummaryView(GenericAPIView):

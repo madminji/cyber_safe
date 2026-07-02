@@ -1,3 +1,5 @@
+"use client";
+
 import {
   ArrowRight,
   BadgeCheck,
@@ -13,7 +15,11 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 
+import { useLanguage } from "@/context/language-context";
+
 export default function HomePage() {
+  const { t } = useLanguage();
+
   return (
     <>
       <section className="hero">
@@ -23,30 +29,29 @@ export default function HomePage() {
           <div className="hero-copy">
             <span className="eyebrow">
               <Sparkles size={15} />
-              Знания, которые защищают
+              {t("home.eyebrow")}
             </span>
             <h1>
-              Будьте на шаг впереди <em>цифровых мошенников</em>
+              {t("home.titleBefore")} <em>{t("home.titleAccent")}</em>
             </h1>
             <p>
-              Научитесь распознавать обман, проверьте подозрительный номер и
-              подтвердите свои знания официальным сертификатом.
+              {t("home.lead")}
             </p>
             <div className="hero-actions">
               <Link className="button button-primary" href="/quiz">
-                Пройти тест
+                {t("home.takeQuiz")}
                 <ArrowRight size={18} />
               </Link>
-              <Link className="button button-ghost" href="/numbers">
-                Проверить номер
+              <Link className="button button-ghost" href="/analyzer#phone">
+                {t("home.checkNumber")}
               </Link>
             </div>
             <div className="trust-row">
               <span>
-                <CheckCircle2 size={17} /> Бесплатно
+                <CheckCircle2 size={17} /> {t("home.free")}
               </span>
               <span>
-                <CheckCircle2 size={17} /> Безопасно
+                <CheckCircle2 size={17} /> {t("home.safe")}
               </span>
               <span>
                 <CheckCircle2 size={17} /> RU / UZ
@@ -64,22 +69,22 @@ export default function HomePage() {
               <div className="floating-card card-a">
                 <BadgeCheck size={22} />
                 <span>
-                  Сертификат
-                  <strong>подтверждён</strong>
+                  {t("home.certificate")}
+                  <strong>{t("home.confirmed")}</strong>
                 </span>
               </div>
               <div className="floating-card card-b">
                 <PhoneCall size={22} />
                 <span>
-                  Номер
-                  <strong>проверен</strong>
+                  {t("home.number")}
+                  <strong>{t("home.checked")}</strong>
                 </span>
               </div>
               <div className="floating-card card-c">
                 <BookOpenCheck size={22} />
                 <span>
-                  Уровень
-                  <strong>Эксперт</strong>
+                  {t("home.level")}
+                  <strong>{t("home.expert")}</strong>
                 </span>
               </div>
             </div>
@@ -90,9 +95,9 @@ export default function HomePage() {
       <section className="section">
         <div className="container">
           <div className="section-heading">
-            <span className="eyebrow">Ваш цифровой щит</span>
-            <h2>Три инструмента — одна цель</h2>
-            <p>Помочь принять верное решение до того, как станет слишком поздно.</p>
+            <span className="eyebrow">{t("home.shield")}</span>
+            <h2>{t("home.toolsTitle")}</h2>
+            <p>{t("home.toolsLead")}</p>
           </div>
           <div className="feature-grid">
             <Link href="/quiz" className="feature-card feature-blue">
@@ -100,27 +105,21 @@ export default function HomePage() {
                 <BookOpenCheck />
               </span>
               <span className="feature-number">01</span>
-              <h3>Проверьте знания</h3>
-              <p>
-                10 практических ситуаций из реальной жизни и понятные объяснения
-                после каждого ответа.
-              </p>
+              <h3>{t("home.featureQuizTitle")}</h3>
+              <p>{t("home.featureQuizText")}</p>
               <span className="text-link">
-                Начать тест <ArrowRight size={17} />
+                {t("home.startQuiz")} <ArrowRight size={17} />
               </span>
             </Link>
-            <Link href="/numbers" className="feature-card feature-amber">
+            <Link href="/analyzer#phone" className="feature-card feature-amber">
               <span className="feature-icon">
                 <PhoneCall />
               </span>
               <span className="feature-number">02</span>
-              <h3>Проверьте номер</h3>
-              <p>
-                Узнайте, поступали ли подтверждённые жалобы, и сообщите о
-                подозрительном звонке.
-              </p>
+              <h3>{t("home.featureNumberTitle")}</h3>
+              <p>{t("home.featureNumberText")}</p>
               <span className="text-link">
-                Проверить <ArrowRight size={17} />
+                {t("home.check")} <ArrowRight size={17} />
               </span>
             </Link>
             <Link href="/analyzer" className="feature-card feature-green">
@@ -128,13 +127,10 @@ export default function HomePage() {
                 <SearchCheck />
               </span>
               <span className="feature-number">03</span>
-              <h3>Проверьте сообщение</h3>
-              <p>
-                Разберите подозрительную ссылку или SMS без перехода на сайт и
-                без сохранения исходного содержимого.
-              </p>
+              <h3>{t("home.featureAnalyzerTitle")}</h3>
+              <p>{t("home.featureAnalyzerText")}</p>
               <span className="text-link">
-                Открыть анализатор <ArrowRight size={17} />
+                {t("home.openAnalyzer")} <ArrowRight size={17} />
               </span>
             </Link>
             <Link href="/courses" className="feature-card feature-cyan">
@@ -142,13 +138,10 @@ export default function HomePage() {
                 <GraduationCap />
               </span>
               <span className="feature-number">04</span>
-              <h3>Пройдите обучение</h3>
-              <p>
-                Освойте основные правила защиты короткими уроками и закрепите
-                знания контрольными вопросами.
-              </p>
+              <h3>{t("home.featureCoursesTitle")}</h3>
+              <p>{t("home.featureCoursesText")}</p>
               <span className="text-link">
-                Открыть курсы <ArrowRight size={17} />
+                {t("home.openCourses")} <ArrowRight size={17} />
               </span>
             </Link>
             <Link href="/simulator" className="feature-card feature-red">
@@ -156,13 +149,10 @@ export default function HomePage() {
                 <BrainCircuit />
               </span>
               <span className="feature-number">05</span>
-              <h3>Отразите атаку</h3>
-              <p>
-                Потренируйтесь в безопасном диалоге с мошенником и получите
-                подробный разбор применённых манипуляций.
-              </p>
+              <h3>{t("home.featureSimulatorTitle")}</h3>
+              <p>{t("home.featureSimulatorText")}</p>
               <span className="text-link">
-                Запустить симуляцию <ArrowRight size={17} />
+                {t("home.startSimulation")} <ArrowRight size={17} />
               </span>
             </Link>
             <Link href="/certificates" className="feature-card feature-violet">
@@ -170,13 +160,10 @@ export default function HomePage() {
                 <BadgeCheck />
               </span>
               <span className="feature-number">06</span>
-              <h3>Получите сертификат</h3>
-              <p>
-                Подтвердите уровень цифровой грамотности именным документом с
-                публичной QR-проверкой.
-              </p>
+              <h3>{t("home.featureCertificateTitle")}</h3>
+              <p>{t("home.featureCertificateText")}</p>
               <span className="text-link">
-                Мои сертификаты <ArrowRight size={17} />
+                {t("home.myCertificates")} <ArrowRight size={17} />
               </span>
             </Link>
           </div>
@@ -187,15 +174,15 @@ export default function HomePage() {
         <div className="container danger-grid">
           <div>
             <span className="eyebrow eyebrow-light">
-              <MessageSquareWarning size={15} /> Запомните главное
+              <MessageSquareWarning size={15} /> {t("home.remember")}
             </span>
-            <h2>Мошенники торопят. Вы — остановитесь.</h2>
+            <h2>{t("home.dangerTitle")}</h2>
           </div>
           <div className="danger-list">
-            <p>Никому не называйте SMS-код</p>
-            <p>Не устанавливайте APK из Telegram</p>
-            <p>Не переводите деньги на «безопасный счёт»</p>
-            <p>Перезвоните в банк по официальному номеру</p>
+            <p>{t("home.ruleCode")}</p>
+            <p>{t("home.ruleApk")}</p>
+            <p>{t("home.ruleAccount")}</p>
+            <p>{t("home.ruleBank")}</p>
           </div>
         </div>
       </section>

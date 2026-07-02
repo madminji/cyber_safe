@@ -3,7 +3,7 @@ import uuid
 from rest_framework import serializers
 
 from .models import Choice, Question, TestAnswer
-from .services import start_test, submit_test
+from .services import start_daily_test, start_test, submit_test
 
 
 class ChoiceSerializer(serializers.ModelSerializer):
@@ -43,6 +43,16 @@ class StartTestSerializer(serializers.Serializer):
 
     def create(self, validated_data):
         return start_test(user=self.context["request"].user, **validated_data)
+
+
+class StartDailyTestSerializer(serializers.Serializer):
+    language = serializers.ChoiceField(choices=(("ru", "Русский"), ("uz", "O‘zbekcha")))
+
+    def create(self, validated_data):
+        return start_daily_test(
+            user=self.context["request"].user,
+            **validated_data,
+        )
 
 
 class AnswerInputSerializer(serializers.Serializer):

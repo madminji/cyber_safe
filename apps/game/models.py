@@ -5,6 +5,11 @@ from django.db import models
 
 
 class GameScenario(models.Model):
+    class InterfaceType(models.TextChoices):
+        CHAT = "chat", "Messenger chat"
+        CALL = "call", "Phone call"
+        WEBSITE = "website", "Website"
+
     class Difficulty(models.TextChoices):
         EASY = "easy", "Easy"
         MEDIUM = "medium", "Medium"
@@ -17,6 +22,11 @@ class GameScenario(models.Model):
     description_ru = models.TextField()
     description_uz = models.TextField()
     scam_type = models.CharField(max_length=40)
+    interface_type = models.CharField(
+        max_length=12,
+        choices=InterfaceType.choices,
+        default=InterfaceType.CHAT,
+    )
     difficulty = models.CharField(max_length=10, choices=Difficulty.choices)
     order = models.PositiveSmallIntegerField(default=0)
     is_published = models.BooleanField(default=False)
@@ -113,6 +123,7 @@ class GameTurn(models.Model):
     )
     step = models.ForeignKey(GameStep, on_delete=models.PROTECT)
     choice = models.ForeignKey(GameChoice, on_delete=models.PROTECT)
+    custom_text = models.TextField(blank=True)
     points = models.SmallIntegerField()
     created_at = models.DateTimeField(auto_now_add=True)
 
