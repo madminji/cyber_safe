@@ -32,6 +32,12 @@ type AnswerResponse = {
   session: GameState;
 };
 
+type ChatMessage = {
+  id: string;
+  role: "npc" | "user";
+  text: string;
+};
+
 export default function SimulatorPage() {
   const { user, loading, reloadUser } = useAuth();
   const { language, t } = useLanguage();
@@ -41,6 +47,7 @@ export default function SimulatorPage() {
   const [feedback, setFeedback] = useState("");
   const [feedbackPositive, setFeedbackPositive] = useState(true);
   const [customAnswer, setCustomAnswer] = useState("");
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [busy, setBusy] = useState(true);
   const [error, setError] = useState("");
 
@@ -59,17 +66,26 @@ export default function SimulatorPage() {
     setResult(null);
     setFeedback("");
     setCustomAnswer("");
+    setChatMessages([]);
     try {
-      setGame(
-        await api<GameState>("/game/sessions/", {
-          method: "POST",
-          auth: true,
-          body: JSON.stringify({
-            scenario_id: scenario.id,
-            language,
-          }),
+      const started = await api<GameState>("/game/sessions/", {
+        method: "POST",
+        auth: true,
+        body: JSON.stringify({
+          scenario_id: scenario.id,
+          language,
         }),
-      );
+      });
+      setGame(started);
+      if (started.message) {
+        setChatMessages([
+          {
+            id: `${started.id}-npc-${started.step_number || 1}`,
+            role: "npc",
+            text: started.message,
+          },
+        ]);
+      }
     } catch (requestError) {
       setError((requestError as Error).message);
     } finally {
@@ -77,15 +93,22 @@ export default function SimulatorPage() {
     }
   };
 
-  const answer = async (choiceId?: string) => {
+  const answer = async () => {
     if (!game) return;
     const freeText = customAnswer.trim();
-    if (!choiceId && freeText.length < 2) {
+    if (freeText.length < 2) {
       setError("Напишите ответ или выберите одну из готовых стратегий.");
       return;
     }
     setBusy(true);
     setError("");
+    const userMessage: ChatMessage = {
+      id: `${game.id}-user-${Date.now()}`,
+      role: "user",
+      text: freeText,
+    };
+    setChatMessages((current) => [...current, userMessage]);
+    setCustomAnswer("");
     try {
       const response = await api<AnswerResponse>(
         `/game/sessions/${game.id}/answer/`,
@@ -93,7 +116,6 @@ export default function SimulatorPage() {
           method: "POST",
           auth: true,
           body: JSON.stringify({
-            ...(choiceId ? { choice_id: choiceId } : {}),
             custom_text: freeText,
           }),
         },
@@ -101,7 +123,16 @@ export default function SimulatorPage() {
       setFeedback(response.feedback);
       setFeedbackPositive(response.choice_points > 0);
       setGame(response.session);
-      setCustomAnswer("");
+      if (!response.completed && response.session.message) {
+        setChatMessages((current) => [
+          ...current,
+          {
+            id: `${response.session.id}-npc-${response.session.step_number || Date.now()}`,
+            role: "npc",
+            text: response.session.message || "",
+          },
+        ]);
+      }
       if (response.completed) {
         const completedResult = await api<GameResult>(
           `/game/sessions/${game.id}/result/`,
@@ -111,6 +142,10 @@ export default function SimulatorPage() {
         await reloadUser();
       }
     } catch (requestError) {
+      setChatMessages((current) =>
+        current.filter((message) => message.id !== userMessage.id),
+      );
+      setCustomAnswer(freeText);
       setError((requestError as Error).message);
     } finally {
       setBusy(false);
@@ -122,6 +157,7 @@ export default function SimulatorPage() {
     setResult(null);
     setFeedback("");
     setCustomAnswer("");
+    setChatMessages([]);
     setError("");
   };
 
@@ -283,16 +319,32 @@ export default function SimulatorPage() {
                     <small>online</small>
                   </div>
                 </div>
-                <div className="chat-stage">
-                  <div className="scammer-message">
-                    <small>Telegram</small>
-                    <p>{game.message}</p>
-                  </div>
+                <div className="chat-stage realistic-chat-stage">
+                  {chatMessages.map((message) => (
+                    <div
+                      className={
+                        message.role === "user"
+                          ? "chat-bubble user-bubble"
+                          : "chat-bubble npc-bubble"
+                      }
+                      key={message.id}
+                    >
+                      {message.role === "npc" && <small>Telegram</small>}
+                      <p>{message.text}</p>
+                    </div>
+                  ))}
+                  {busy && (
+                    <div className="typing-indicator">
+                      <span />
+                      <span />
+                      <span />
+                    </div>
+                  )}
                 </div>
               </div>
             )}
 
-            {feedback && (
+            {feedback && false && (
               <div
                 className={
                   feedbackPositive
@@ -306,41 +358,30 @@ export default function SimulatorPage() {
             )}
 
             <div className="game-choices">
-              <span>{t("sim.answerPrompt")}</span>
+              <span>Ваш ответ</span>
               <label className="custom-answer-box">
-                <span>{t("sim.customAnswerLabel")}</span>
                 <textarea
                   value={customAnswer}
                   onChange={(event) => setCustomAnswer(event.target.value)}
                   maxLength={600}
                   disabled={busy}
-                  placeholder={t("sim.customAnswerPlaceholder")}
+                  placeholder="Напишите сообщение собеседнику..."
                   rows={3}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter" && !event.shiftKey) {
+                      event.preventDefault();
+                      answer();
+                    }
+                  }}
                 />
-                <small>{t("sim.customAnswerHelp")}</small>
               </label>
               <button
                 className="button button-primary button-wide"
                 disabled={busy || customAnswer.trim().length < 2}
-                onClick={() => answer()}
+                onClick={answer}
               >
-                Отправить ответ <ArrowRight size={17} />
+                {busy ? "Отправляем..." : "Отправить"} <ArrowRight size={17} />
               </button>
-              <span className="strategy-helper">
-                Не уверены? Выберите готовую стратегию ниже — она поможет системе
-                оценить ваш ответ.
-              </span>
-              {game.choices.map((choice) => (
-                <button
-                  key={choice.id}
-                  disabled={busy}
-                  onClick={() => answer(choice.id)}
-                >
-                  <span>{String.fromCharCode(64 + choice.order)}</span>
-                  {choice.text}
-                  <ArrowRight size={17} />
-                </button>
-              ))}
             </div>
             {error && <div className="form-error">{error}</div>}
           </div>
