@@ -1,331 +1,660 @@
 # CyberSafe Uzbekistan
 
-Full-stack prototype for the CyberSafe Uzbekistan digital-safety platform.
+CyberSafe Uzbekistan is a full-stack educational web platform for digital safety,
+fraud awareness, scam reporting, moderation, certificates, quizzes, courses and
+user ranking.
 
-## Included in the first increment
+The project has two main parts:
 
-- Django REST API with OpenAPI/Swagger documentation
-- PostgreSQL and Redis development services
-- Privacy-preserving phone storage (encrypted value + HMAC lookup index)
-- OTP registration/login flow
-- JWT access and refresh tokens
-- Role-ready custom user model
-- Automated API tests
-- Bilingual quiz sessions with server-side scoring
+- Backend: Django + Django REST Framework
+- Frontend: Next.js + React
+
+Main features:
+
+- OTP login
+- Courses and lessons
+- JSON lesson import
+- Quiz and daily quiz
 - PDF certificates with QR verification
-- Privacy-preserving scam-number reports and moderation
+- SMS / URL / phone analyzer
+- Citizen scam reports
+- Moderator panel
+- Suspicious number registry
+- User management for admins
+- User leaderboard
+- Scam dialogue simulator
 
-## Quick start with Docker
+---
 
-1. Copy `.env.example` to `.env`.
-2. Generate `PHONE_ENCRYPTION_KEY` using the command shown in `.env.example`.
-3. Replace all placeholder secrets.
-4. Run:
+## 1. Requirements
 
-```powershell
-docker compose up --build
+Install these tools first:
+
+- Python 3.11 or 3.12
+- Node.js LTS
+- npm
+- Git
+- VS Code
+
+Check installation:
+
+```bash
+python --version
+node --version
+npm --version
+git --version
 ```
 
-API health: <http://localhost:8000/api/v1/health/>
+---
 
-Swagger UI: <http://localhost:8000/api/docs/>
+## 2. Clone or open the project
 
-Frontend: <http://localhost:3000/>
+Clone with Git:
 
-## Local development without Docker
-
-Open the project folder in VS Code:
-
-```text
-C:\Users\madis\Documents\cyber
+```bash
+git clone git@github.com:madminji/cyber_safe.git
+cd cyber
 ```
 
-Backend terminal:
+Or open the already downloaded project folder in VS Code.
 
-```powershell
+Backend commands must be executed from the project root, where `manage.py` is
+located.
+
+---
+
+## 3. Backend virtual environment
+
+From the project root:
+
+```bash
 python -m venv .venv
-.\.venv\Scripts\Activate.ps1
-pip install -r requirements\development.txt
-Copy-Item .env.example .env
-python manage.py migrate
-python manage.py seed_courses
-python manage.py seed_quiz
-python manage.py seed_game
-python manage.py seed_webgame
-python manage.py runserver
 ```
 
-If `Copy-Item` is not available because you are in Git Bash, use one of these:
+Activate in PowerShell:
+
+```powershell
+.\.venv\Scripts\Activate.ps1
+```
+
+Activate in Git Bash:
+
+```bash
+source .venv/Scripts/activate
+```
+
+If PowerShell blocks script execution:
+
+```powershell
+Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
+```
+
+Then activate again:
+
+```powershell
+.\.venv\Scripts\Activate.ps1
+```
+
+---
+
+## 4. Backend dependencies
+
+From the project root:
+
+```bash
+pip install -r requirements/development.txt
+```
+
+On Windows this also works:
+
+```powershell
+pip install -r requirements\development.txt
+```
+
+---
+
+## 5. Backend `.env`
+
+Create a file named `.env` in the project root.
+
+You can copy the example:
+
+PowerShell:
+
+```powershell
+Copy-Item .env.example .env
+```
+
+Git Bash:
 
 ```bash
 cp .env.example .env
 ```
 
-or create `.env` manually and copy the content from `.env.example`.
+If copy commands do not work, create `.env` manually in VS Code.
 
-Default local `.env.example` values use SQLite and in-memory cache:
+Minimal local `.env`:
 
 ```env
+DJANGO_SETTINGS_MODULE=config.settings.development
+SECRET_KEY=dev-secret-key-change-me
+DEBUG=True
+
 DATABASE_URL=sqlite:///db.sqlite3
 REDIS_URL=locmem://
+
+PHONE_LOOKUP_SECRET=dev-phone-lookup-secret-change-me
+PHONE_ENCRYPTION_KEY=PASTE_GENERATED_FERNET_KEY_HERE
+
+PUBLIC_SITE_URL=http://127.0.0.1:3000
+
+OTP_ECHO_IN_RESPONSE=True
+
+OPENROUTER_API_KEY=
+OPENROUTER_MODEL=deepseek/deepseek-chat-v3-0324:free
+OPENROUTER_TIMEOUT_SECONDS=12
 ```
 
-Frontend terminal:
-
-```powershell
-cd frontend
-npm install
-Copy-Item .env.example .env.local
-npm run dev
-```
-
-If `Copy-Item` is not available in Git Bash:
+Generate `PHONE_ENCRYPTION_KEY`:
 
 ```bash
-cp .env.example .env.local
+python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
 ```
 
-Open:
+Paste the generated value into `.env`:
 
-<http://localhost:3000/>
+```env
+PHONE_ENCRYPTION_KEY=generated_key_here
+```
 
-Backend API:
+Without `PHONE_ENCRYPTION_KEY`, phone encryption and scam reports can fail.
 
-<http://127.0.0.1:8000/api/v1/health/>
+---
 
-## Authentication flow
+## 6. Backend migrations
 
-1. `POST /api/v1/auth/request-otp/`
-2. `POST /api/v1/auth/verify-otp/`
-3. Use the returned access token as `Authorization: Bearer <token>`.
-4. Refresh it through `POST /api/v1/auth/token/refresh/`.
+From the project root:
 
-When `OTP_ECHO_IN_RESPONSE=True`, the request endpoint returns a
-`development_otp` field. This exists only for local development.
+```bash
+python manage.py migrate
+```
 
-## Seed the initial quiz
+---
 
-```powershell
+## 7. Seed initial data
+
+After migrations, the database is empty. Seed commands add demo/start data.
+
+Recommended minimum:
+
+```bash
 python manage.py seed_quiz
+python manage.py seed_realistic_simulations
+python manage.py sync_course_metadata
 ```
 
-Quiz flow:
+What these commands do:
 
-1. `POST /api/v1/quiz/sessions/`
-2. `POST /api/v1/quiz/sessions/{session_id}/submit/`
-3. `GET /api/v1/certificates/{certificate_id}/`
-4. `GET /api/v1/certificates/{certificate_id}/pdf/`
+- `seed_quiz` adds quiz and daily quiz questions.
+- `seed_realistic_simulations` adds realistic scam dialogue simulations.
+- `sync_course_metadata` updates course titles and descriptions.
 
-Scammer database flow:
+Optional old simulator data:
 
-1. `GET /api/v1/scammer-db/check/?phone=+998XXXXXXXXX`
-2. `POST /api/v1/scammer-db/reports/`
-3. `GET /api/v1/scammer-db/reports/my/`
-4. Moderator: `GET /api/v1/scammer-db/moderation/reports/?status=pending`
-5. Moderator: `PATCH /api/v1/scammer-db/moderation/reports/{report_id}/`
-6. Moderator verification:
-   `PATCH /api/v1/scammer-db/moderation/numbers/{number_id}/verification/`
-
-Assign moderator access to an existing registered user:
-
-```powershell
-python manage.py set_user_role --phone +998XXXXXXXXX --role moderator
+```bash
+python manage.py seed_game
 ```
 
-The moderator interface is available at:
+Optional 3D web game data:
 
-<http://localhost:3000/moderation>
-
-`not_found` means that no approved reports exist. It never means that a
-number has been proven safe.
-
-Analyzer:
-
-1. `POST /api/v1/analyzer/url/` with `{ "url": "..." }`
-2. `POST /api/v1/analyzer/sms/` with `{ "text": "..." }`
-
-The analyzer never opens submitted URLs and stores only a keyed SHA-256 hash,
-the verdict and triggered signals.
-
-Courses:
-
-```powershell
-python manage.py seed_courses
+```bash
+python manage.py seed_webgame
 ```
 
-To import the full 20-lesson CyberSafe course from a prepared Word document
-and split it into three published levels:
+The 3D game is currently postponed, so `seed_webgame` can be skipped.
 
-```powershell
-python manage.py import_course_docx _lessons_source.docx
-```
+---
 
-The importer creates/updates:
+## 8. Run backend
 
-- `cybersafe-basic` — 8 beginner lessons
-- `cybersafe-advanced` — 8 intermediate lessons
-- `cybersafe-expert` — 4 expert lessons
+From the project root:
 
-It also hides the old single `digital-safety-basics` course from the public
-catalog, adds module titles, long lesson content, supplemental safety notes and
-one mini-test question per lesson.
-
-Admin course management:
-
-```powershell
-python manage.py createsuperuser
+```bash
 python manage.py runserver
 ```
 
+Backend:
+
+```text
+http://127.0.0.1:8000/
+```
+
+Health check:
+
+```text
+http://127.0.0.1:8000/api/v1/health/
+```
+
+Swagger/OpenAPI:
+
+```text
+http://127.0.0.1:8000/api/docs/
+```
+
+Keep this terminal open.
+
+---
+
+## 9. Frontend dependencies
+
+Open a second VS Code terminal.
+
+Go to the frontend folder:
+
+```bash
+cd frontend
+```
+
+Install dependencies:
+
+```bash
+npm install
+```
+
+---
+
+## 10. Frontend `.env.local`
+
+Create this file:
+
+```text
+frontend/.env.local
+```
+
+Content:
+
+```env
+NEXT_PUBLIC_API_URL=http://127.0.0.1:8000/api/v1
+```
+
+Important: `.env.local` must be inside the `frontend` folder, not in the project
+root.
+
+---
+
+## 11. Run frontend
+
+From the `frontend` folder:
+
+```bash
+npm run dev
+```
+
 Open:
 
-<http://127.0.0.1:8000/admin/>
+```text
+http://localhost:3000
+```
 
-In the admin panel you can manage courses, lessons, lesson questions and answer
-choices. On the course list page use `Импортировать DOCX` to upload a prepared
-Word document and update the three course levels from the browser.
+---
 
-Unified lesson import:
+## 12. Daily run commands
 
-The scalable lesson format is JSON. It is strict enough for backend validation
-and still lets lesson authors write long Markdown-style text inside localized
-fields. Example file:
+Terminal 1, backend:
+
+```bash
+cd cyber
+.\.venv\Scripts\Activate.ps1
+python manage.py runserver
+```
+
+Terminal 2, frontend:
+
+```bash
+cd cyber/frontend
+npm run dev
+```
+
+Open:
+
+```text
+http://localhost:3000
+```
+
+---
+
+## 13. Login
+
+Open:
+
+```text
+http://localhost:3000/login
+```
+
+Use a phone number in this format:
+
+```text
++998901234567
+```
+
+In local development, OTP is returned in the API response because:
+
+```env
+OTP_ECHO_IN_RESPONSE=True
+```
+
+---
+
+## 14. Make a user admin or moderator
+
+The user must log in at least once before role assignment.
+
+Make admin:
+
+```bash
+python manage.py set_user_role --phone +998901234567 --role admin
+```
+
+Make moderator:
+
+```bash
+python manage.py set_user_role --phone +998901234567 --role moderator
+```
+
+After changing the role, log out from the website and log in again.
+
+Moderator/admin panel:
+
+```text
+http://localhost:3000/moderation
+```
+
+Available there:
+
+- citizen reports
+- number registry
+- lesson import
+- lesson deletion
+- user management
+- user blocking/unblocking
+
+---
+
+## 15. Courses and JSON lesson import
+
+Courses support:
+
+- levels
+- modules
+- lessons
+- theory blocks
+- definitions
+- examples
+- warnings
+- practical tasks
+- quizzes
+- materials
+- video links
+
+Lessons can be imported as JSON from the moderation panel:
+
+```text
+http://localhost:3000/moderation
+```
+
+Open the `Lessons` tab.
+
+Example JSON:
 
 ```text
 docs/lesson_import_example.json
 ```
 
-The format supports:
-
-- `course_slug` or `course_id`
-- `lesson_slug`, `module.slug`, localized module title
-- localized lesson title, summary and main content
-- ordered blocks: `theory`, `definition`, `example`, `warning`, `note`, `code`,
-  `checklist`, `task`, `quiz`, `materials`
-- practical tasks
-- one or more quiz questions with choices, correct answer and explanation
-- additional materials and display order
-
-Admin-only API endpoint:
+Backend endpoint:
 
 ```text
 POST /api/v1/courses/admin/lessons/import/
 ```
 
-JSON body example:
+Re-uploading the same `course_slug + lesson_slug` updates the lesson without
+duplicates.
 
-```json
-{
-  "payload": {
-    "course_slug": "cybersafe-basic",
-    "lesson_slug": "safe-clicking",
-    "order": 1,
-    "title": {"ru": "Безопасный клик", "uz": "Xavfsiz bosish"},
-    "summary": {"ru": "Как проверять ссылки.", "uz": "Havolalarni tekshirish."},
-    "content": {"ru": "Теория урока.", "uz": "Dars nazariyasi."},
-    "quiz": [
-      {
-        "text": {"ru": "Что делать?", "uz": "Nima qilish kerak?"},
-        "choices": [
-          {"text": {"ru": "Открыть ссылку", "uz": "Havolani ochish"}, "is_correct": false},
-          {"text": {"ru": "Проверить сервис вручную", "uz": "Qo‘lda tekshirish"}, "is_correct": true}
-        ],
-        "explanation": {"ru": "Так безопаснее.", "uz": "Bu xavfsizroq."}
-      }
-    ]
-  }
-}
+---
+
+## 16. Certificates
+
+Certificates are created after a successful quiz.
+
+Certificate page:
+
+```text
+http://localhost:3000/certificates
 ```
 
-Multipart upload is also supported with the file field named `file`.
-Re-uploading the same `course_slug + lesson_slug` updates the lesson and
-replaces its blocks, tasks and quiz questions without duplicates.
+Public QR verification:
 
-To convert existing database lessons into this JSON format:
-
-```powershell
-python manage.py export_lessons_json docs\lesson_imports
+```text
+http://localhost:3000/certificates/verify/<certificate_id>
 ```
 
-To load one JSON file or a whole directory back into the database:
+Rules:
 
-```powershell
-python manage.py import_lessons_json docs\lesson_imports
+- Public QR verification only confirms authenticity.
+- PDF download is available only to the certificate owner or admin.
+
+---
+
+## 17. Scam reports
+
+Report form:
+
+```text
+http://localhost:3000/numbers/report
 ```
 
-To split exported long lesson text into structured blocks and practical tasks
-before importing:
+Users can report:
 
-```powershell
-python manage.py enrich_lessons_json docs\lesson_imports
-python manage.py import_lessons_json docs\lesson_imports
+- phone number
+- URL
+- account
+- card/account number
+- other suspicious target
+
+Only approved phone reports affect the public number database.
+
+Moderators see the full phone number in moderation, but public users see only a
+masked number.
+
+---
+
+## 18. Analyzer
+
+Analyzer page:
+
+```text
+http://localhost:3000/analyzer
 ```
 
-1. `GET /api/v1/courses/`
-2. `GET /api/v1/courses/{course_id}/`
-3. `GET /api/v1/courses/lessons/{lesson_id}/`
-4. `POST /api/v1/courses/lessons/{lesson_id}/answer/`
+Features:
 
-Fraud simulator:
+- URL check
+- SMS/text check
+- phone number check
 
-```powershell
-python manage.py seed_game
+API:
+
+```text
+POST /api/v1/analyzer/url/
+POST /api/v1/analyzer/sms/
+GET  /api/v1/scammer-db/check/?phone=+998XXXXXXXXX
 ```
 
-1. `GET /api/v1/game/scenarios/`
-2. `POST /api/v1/game/sessions/`
-3. `POST /api/v1/game/sessions/{session_id}/answer/`
-4. `GET /api/v1/game/sessions/{session_id}/result/`
+---
 
-Optional OpenRouter enhancement:
+## 19. Leaderboard
+
+Profile shows:
+
+- points
+- rank
+- certificates
+- course progress
+- reports
+
+Leaderboard page:
+
+```text
+http://localhost:3000/leaderboard
+```
+
+API:
+
+```text
+GET /api/v1/auth/leaderboard/
+```
+
+The leaderboard does not expose full phone numbers.
+
+---
+
+## 20. OpenRouter / AI
+
+If you have an OpenRouter key, add it to backend `.env`:
 
 ```env
-OPENROUTER_API_KEY=your-key
-OPENROUTER_MODEL=openrouter/free
+OPENROUTER_API_KEY=your_key_here
+OPENROUTER_MODEL=deepseek/deepseek-chat-v3-0324:free
 OPENROUTER_TIMEOUT_SECONDS=12
 ```
 
-AI rewrites the next scammer message and creates a final coaching summary.
-Scoring and scenario progression remain local and deterministic.
+AI is used in the simulator for more natural scammer messages and final
+feedback.
 
-3D web game:
+If the key is empty, the project still runs.
 
-```powershell
-python manage.py seed_webgame
+---
+
+## 21. Before pushing to GitHub
+
+Check:
+
+```bash
+git status
 ```
 
-1. `GET /api/v1/webgame/characters/`
-2. `GET /api/v1/webgame/scenarios/`
-3. `POST /api/v1/webgame/sessions/`
-4. `POST /api/v1/webgame/sessions/{session_id}/actions/`
-5. `POST /api/v1/webgame/sessions/{session_id}/complete/`
-6. `GET /api/v1/webgame/leaderboard/`
+Do not commit:
 
-Frontend pages:
+- `.env`
+- `frontend/.env.local`
+- `.venv`
+- `db.sqlite3`
+- secret API keys
+- real personal data
 
-- `/games` — 3D game module
-- `/games/leaderboard` — game leaderboard
+Frontend build:
 
-## Frontend development
-
-```powershell
+```bash
 cd frontend
-npm install
+npm run build
+```
+
+Backend checks:
+
+```bash
+python manage.py check
+pytest
+```
+
+---
+
+## 22. Common errors
+
+### `npm error Missing script: "dev"`
+
+You are probably not inside the `frontend` folder.
+
+Correct:
+
+```bash
+cd frontend
 npm run dev
 ```
 
-Important frontend pages:
+### `Copy-Item` not found
 
-- `/courses` — course catalog
-- `/courses/{id}/lessons/{lessonId}` — lesson page with sidebar and optional video
-- `/daily-quiz` — daily quiz
-- `/analyzer` — SMS/URL/phone check
-- `/numbers/report` — citizen scam-number report
-- `/simulator` — AI-enhanced scam simulation
-- `/moderation` — moderator panel
+You are using Git Bash, not PowerShell.
 
-For moderator access:
+Use:
 
-```powershell
-python manage.py set_user_role --phone +998XXXXXXXXX --role moderator
+```bash
+cp .env.example .env
 ```
+
+Or create the file manually in VS Code.
+
+### `cp: command not found`
+
+Create `.env` or `.env.local` manually in VS Code.
+
+### Redis connection error
+
+Check backend `.env`:
+
+```env
+REDIS_URL=locmem://
+```
+
+### Login returns 500
+
+Check:
+
+- backend is running
+- frontend `.env.local` is inside `frontend`
+- `NEXT_PUBLIC_API_URL` is correct
+- migrations were applied
+- `PHONE_ENCRYPTION_KEY` is filled
+
+### Users tab is not visible in moderation
+
+The account must have the `admin` role:
+
+```bash
+python manage.py set_user_role --phone +998901234567 --role admin
+```
+
+Then log out and log in again.
+
+---
+
+## 23. Useful local links
+
+Frontend:
+
+```text
+http://localhost:3000
+```
+
+Backend health:
+
+```text
+http://127.0.0.1:8000/api/v1/health/
+```
+
+Swagger:
+
+```text
+http://127.0.0.1:8000/api/docs/
+```
+
+Moderation:
+
+```text
+http://localhost:3000/moderation
+```
+
+Leaderboard:
+
+```text
+http://localhost:3000/leaderboard
+```
+
