@@ -37,6 +37,8 @@ class VerifyOTPSerializer(serializers.Serializer):
 
 
 class UserSerializer(serializers.ModelSerializer):
+    rank = serializers.SerializerMethodField()
+
     class Meta:
         model = User
         fields = [
@@ -47,6 +49,7 @@ class UserSerializer(serializers.ModelSerializer):
             "language",
             "role",
             "points",
+            "rank",
             "is_verified",
             "date_joined",
         ]
@@ -55,11 +58,73 @@ class UserSerializer(serializers.ModelSerializer):
             "phone_masked",
             "role",
             "points",
+            "rank",
             "is_verified",
             "date_joined",
         ]
 
+    def get_rank(self, obj) -> int:
+        return User.objects.filter(points__gt=obj.points, is_active=True).count() + 1
+
+
+class AdminUserSerializer(serializers.ModelSerializer):
+    rank = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = [
+            "id",
+            "phone_masked",
+            "full_name",
+            "region",
+            "language",
+            "role",
+            "points",
+            "rank",
+            "is_verified",
+            "is_active",
+            "is_staff",
+            "date_joined",
+            "updated_at",
+        ]
+        read_only_fields = [
+            "id",
+            "phone_masked",
+            "rank",
+            "is_staff",
+            "date_joined",
+            "updated_at",
+        ]
+
+    def get_rank(self, obj) -> int:
+        return User.objects.filter(points__gt=obj.points, is_active=True).count() + 1
+
+    def validate_role(self, value):
+        request = self.context.get("request")
+        if self.instance and request and self.instance.id == request.user.id:
+            if value != self.instance.role:
+                raise serializers.ValidationError("You cannot change your own role.")
+        return value
+
+    def validate_is_active(self, value):
+        request = self.context.get("request")
+        if self.instance and request and self.instance.id == request.user.id and not value:
+            raise serializers.ValidationError("You cannot deactivate your own account.")
+        return value
+
+    def update(self, instance, validated_data):
+        user = super().update(instance, validated_data)
+        user.is_staff = user.role in {User.Role.MODERATOR, User.Role.ADMIN}
+        user.save(update_fields=["is_staff", "updated_at"])
+        return user
+
+
+class LeaderboardEntrySerializer(serializers.Serializer):
+    rank = serializers.IntegerField()
+    user_name = serializers.CharField()
+    points = serializers.IntegerField()
+    is_current_user = serializers.BooleanField(default=False)
+
 
 class LogoutSerializer(serializers.Serializer):
     refresh = serializers.CharField()
-

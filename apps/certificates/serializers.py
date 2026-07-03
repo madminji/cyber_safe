@@ -26,10 +26,24 @@ class CertificateSerializer(serializers.ModelSerializer):
 
     def get_verification_url(self, obj) -> str:
         request = self.context.get("request")
-        path = f"/api/v1/certificates/{obj.id}/"
-        return request.build_absolute_uri(path) if request else path
+        if request:
+            scheme = request.headers.get("x-forwarded-proto", request.scheme)
+            host = request.get_host()
+            if host.startswith("127.0.0.1:8000") or host.startswith("localhost:8000"):
+                host = host.replace(":8000", ":3000")
+            return f"{scheme}://{host}/certificates/verify/{obj.id}"
+        return f"/certificates/verify/{obj.id}"
 
     def get_pdf_url(self, obj) -> str:
         request = self.context.get("request")
+        if request:
+            user = getattr(request, "user", None)
+            can_download = (
+                user
+                and user.is_authenticated
+                and (obj.user_id == user.id or getattr(user, "role", "") == "admin")
+            )
+            if not can_download:
+                return ""
         path = f"/api/v1/certificates/{obj.id}/pdf/"
         return request.build_absolute_uri(path) if request else path

@@ -12,6 +12,21 @@ class OpenRouterError(Exception):
     pass
 
 
+PROMPT_LEAK_MARKERS = (
+    "we need",
+    "i need",
+    "the task",
+    "required next-step",
+    "trainee replied",
+    "scenario:",
+    "rewrite the required",
+    "as a natural reaction",
+    "simulation",
+    "cybersecurity training",
+    "one short line",
+)
+
+
 def openrouter_enabled():
     return bool(settings.OPENROUTER_API_KEY)
 
@@ -67,34 +82,73 @@ def localized(obj, field, language):
     return getattr(obj, f"{field}_{language}")
 
 
+def clean_simulation_message(content, *, language):
+    message = content.strip().strip("\"'“”«»")
+    lowered = message.lower()
+    if any(marker in lowered for marker in PROMPT_LEAK_MARKERS):
+        raise OpenRouterError("OpenRouter returned prompt/meta text.")
+    if "\n" in message:
+        first_line = next(
+            (line.strip().strip("\"'“”«»") for line in message.splitlines() if line.strip()),
+            "",
+        )
+        if not first_line:
+            raise OpenRouterError("OpenRouter returned an empty response.")
+        message = first_line
+        lowered = message.lower()
+        if any(marker in lowered for marker in PROMPT_LEAK_MARKERS):
+            raise OpenRouterError("OpenRouter returned prompt/meta text.")
+    if language == "ru" and not any("а" <= char.lower() <= "я" or char == "ё" for char in message):
+        raise OpenRouterError("OpenRouter returned a non-Russian response.")
+    if len(message.split()) > 70:
+        raise OpenRouterError("OpenRouter returned a message that is too long.")
+    return message
+
+
 def generate_next_message(*, session, selected_choice, custom_text=""):
     if session.current_step_id is None:
         return None
     language_name = "Russian" if session.language == "ru" else "Uzbek"
     fallback = localized(session.current_step, "message", session.language)
     trainee_reply = custom_text or localized(selected_choice, "text", session.language)
+    recent_turns = []
+    for turn in session.turns.select_related("step", "choice").order_by("-created_at")[:3]:
+        recent_turns.append(
+            {
+                "sender": localized(turn.step, "message", session.language),
+                "trainee": turn.custom_text
+                or localized(turn.choice, "text", session.language),
+            }
+        )
+    recent_turns.reverse()
     messages = [
         {
             "role": "system",
             "content": (
-                "You generate one short line for a cybersecurity training simulation. "
+                "You write exactly one chat message from a fictional suspicious sender. "
                 "Act as a fictional scammer using social engineering, but never provide "
                 "technical hacking instructions, malware code, or real payment details. "
                 f"Write only in {language_name}. Keep it under 55 words. "
-                "Do not mention that this is a simulation or explain the tactic."
+                "If the trainee asks a question, answer it plausibly first, then steer "
+                "back to the sender's goal. Use natural messenger style. "
+                "Return only the message text. No reasoning, no analysis, no labels, "
+                "no quotes, no markdown, no mention of scenarios or simulations."
             ),
         },
         {
             "role": "user",
             "content": (
                 f"Scenario: {localized(session.scenario, 'title', session.language)}\n"
+                f"Recent dialog: {json.dumps(recent_turns, ensure_ascii=False)}\n"
                 f"The trainee replied: {trainee_reply}\n"
                 f"Required next-step meaning: {fallback}\n"
-                "Rewrite the required meaning as a natural reaction to the trainee's reply."
+                "Write the next Telegram/SMS message that the suspicious sender sends. "
+                "It must sound like a direct reply to the trainee."
             ),
         },
     ]
-    return chat_completion(messages=messages, max_tokens=120, temperature=0.75)
+    content, model = chat_completion(messages=messages, max_tokens=120, temperature=0.75)
+    return clean_simulation_message(content, language=session.language), model
 
 
 def generate_final_analysis(session):

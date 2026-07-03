@@ -65,8 +65,28 @@ const lessonUi = {
     textPlaceholder: "Введите короткий ответ или своё правило...",
     answerSaved: "Ответ сохранён на этой странице. Можно сравнить его с правилами из урока.",
     correct: "Верно.",
+    almost: "Не совсем.",
     correctOption: "Правильный вариант",
     question: "Вопрос",
+    riskExists: "Риск есть",
+    safe: "Безопасно",
+    completed: "Выполнено",
+    solved: "Решено",
+    selected: "Выбрано",
+    sorted: "Распределено",
+    ruleInstruction: "Сформулируйте свои правила коротко и конкретно.",
+    ruleLabel: "Правило",
+    ruleExample: "Например: не называю SMS-коды",
+    rulePlaceholder: "Введите своё правило",
+    rulesSuccess: "Отлично. Эти правила можно использовать как личную памятку.",
+    scenarioInstruction: "Выберите безопасное действие в каждом кейсе.",
+    checklistInstruction: "Отметьте, что вы готовы проверить после урока.",
+    numberInstruction: "Сопоставьте статус номера с безопасным действием.",
+    incidentInstruction: "Выберите ситуацию и получите чек-лист первых действий.",
+    done: "Готово",
+    markDone: "Отметить как выполненное",
+    reportPlaceholder:
+      "Кратко опишите факты: дата, канал связи, что просили сделать, сумма ущерба, какие доказательства есть.",
     blockLabels: {
       theory: "Теория",
       definition: "Определение",
@@ -100,8 +120,28 @@ const lessonUi = {
     textPlaceholder: "Qisqa javob yoki shaxsiy qoidangizni kiriting...",
     answerSaved: "Javob shu sahifada saqlandi. Uni dars qoidalari bilan solishtirishingiz mumkin.",
     correct: "To‘g‘ri.",
+    almost: "Uncha emas.",
     correctOption: "To‘g‘ri variant",
     question: "Savol",
+    riskExists: "Xavf bor",
+    safe: "Xavfsiz",
+    completed: "Bajarildi",
+    solved: "Yechildi",
+    selected: "Tanlandi",
+    sorted: "Taqsimlandi",
+    ruleInstruction: "Qoidalaringizni qisqa va aniq yozing.",
+    ruleLabel: "Qoida",
+    ruleExample: "Masalan: SMS-kodlarni aytmayman",
+    rulePlaceholder: "Qoidangizni kiriting",
+    rulesSuccess: "Ajoyib. Bu qoidalardan shaxsiy eslatma sifatida foydalanishingiz mumkin.",
+    scenarioInstruction: "Har bir vaziyatda xavfsiz harakatni tanlang.",
+    checklistInstruction: "Darsdan keyin nimalarni tekshirishga tayyor ekaningizni belgilang.",
+    numberInstruction: "Raqam holatini xavfsiz harakat bilan moslang.",
+    incidentInstruction: "Vaziyatni tanlang va birinchi harakatlar ro‘yxatini oling.",
+    done: "Tayyor",
+    markDone: "Bajarildi deb belgilash",
+    reportPlaceholder:
+      "Faktlarni qisqa yozing: sana, aloqa kanali, nima so‘raldi, zarar miqdori, qanday dalillar bor.",
     blockLabels: {
       theory: "Nazariya",
       definition: "Ta’rif",
@@ -116,7 +156,6 @@ const lessonUi = {
     },
   },
 } as const;
-
 const majorHeadingTypes: Record<string, LessonSection["type"]> = {
   "Основной учебный материал": "theory",
   "Теория": "theory",
@@ -198,156 +237,271 @@ function sectionIcon(type: LessonSection["type"]) {
   return <BookOpenText size={20} />;
 }
 
-const riskTrainingCards = [
-  {
-    text: "Ваша карта заблокирована. Срочно подтвердите данные по ссылке.",
-    risky: true,
-    reason: "Есть срочность, угроза блокировки и ссылка для ввода данных.",
-  },
-  {
-    text: "Вы выиграли 1 000 000 сум. Отправьте фото паспорта для получения приза.",
-    risky: true,
-    reason: "Обещание выигрыша и просьба отправить документ — высокий риск.",
-  },
-  {
-    text: "Ваш заказ доставлен. Проверьте трек-номер в официальном приложении.",
-    risky: false,
-    reason: "Безопаснее открывать трек внутри официального приложения.",
-  },
-  {
-    text: "Служба безопасности банка просит назвать SMS-код для отмены перевода.",
-    risky: true,
-    reason: "SMS-код нельзя передавать никому, даже “сотруднику банка”.",
-  },
-  {
-    text: "Напоминание: обновите приложение через официальный магазин приложений.",
-    risky: false,
-    reason: "Официальный магазин — нормальный и безопасный канал обновления.",
-  },
-];
+type LocalizedText = Record<"ru" | "uz", string>;
 
-const dataSortingCards = [
-  { text: "Имя и город", zone: "public" },
-  { text: "Номер телефона", zone: "trusted" },
-  { text: "Фото паспорта", zone: "trusted" },
-  { text: "SMS-код", zone: "secret" },
-  { text: "CVV-код карты", zone: "secret" },
-  { text: "Пароль от почты", zone: "secret" },
-];
-
-const dataZones = [
-  { id: "public", label: "Можно указывать публично" },
-  { id: "trusted", label: "Только проверенным сервисам" },
-  { id: "secret", label: "Никому не передавать" },
-];
-
-const scenarioChoices = [
-  {
-    text: "В сообщении обещают выплату и просят перейти по короткой ссылке.",
-    options: [
-      { text: "Перейти и проверить", safe: false },
-      { text: "Открыть официальный сайт вручную", safe: true },
-      { text: "Отправить ссылку друзьям", safe: false },
-    ],
-    reason: "Безопаснее открыть официальный сайт вручную и не использовать ссылку из сообщения.",
-  },
-  {
-    text: "Звонящий говорит, что он из банка, и просит назвать SMS-код.",
-    options: [
-      { text: "Назвать код", safe: false },
-      { text: "Попросить перезвонить", safe: false },
-      { text: "Завершить разговор и позвонить в банк самому", safe: true },
-    ],
-    reason: "Код подтверждения нельзя сообщать никому. Связывайтесь с банком самостоятельно.",
-  },
-  {
-    text: "В Telegram прислали APK “для получения бонуса”.",
-    options: [
-      { text: "Установить APK", safe: false },
-      { text: "Проверить приложение в официальном магазине", safe: true },
-      { text: "Отключить защиту телефона", safe: false },
-    ],
-    reason: "Приложения безопаснее устанавливать только из официального магазина или официального сайта.",
-  },
-];
-
-const homeChecklistItems = [
-  "Проверить активные сеансы Telegram",
-  "Включить двухфакторную защиту на почте",
-  "Проверить, кто видит номер телефона в мессенджере",
-  "Удалить неизвестные приложения",
-];
-
-const numberPracticeCards = [
-  {
-    status: "Не найден",
-    action: "Не считать номер безопасным автоматически",
-    reason: "Отсутствие жалоб не доказывает безопасность номера.",
-  },
-  {
-    status: "Подозрительно",
-    action: "Не отвечать и сохранить доказательства",
-    reason: "Есть признаки риска, лучше не продолжать разговор.",
-  },
-  {
-    status: "Опасно",
-    action: "Заблокировать номер и отправить репорт",
-    reason: "Подтверждённый риск нужно зафиксировать для модерации.",
-  },
-];
-
-const incidentChecklists: Record<string, string[]> = {
-  "Назвал код": [
-    "Сразу заблокировать карту или аккаунт",
-    "Сменить пароль",
-    "Отключить чужие сеансы",
-    "Сообщить в банк или поддержку",
-  ],
-  "Установил APK": [
-    "Удалить приложение",
-    "Отключить интернет при подозрительной активности",
-    "Проверить разрешения приложений",
-    "Сменить пароли с другого устройства",
-  ],
-  "Отправил паспорт": [
-    "Сохранить переписку",
-    "Сообщить в сервис/банк",
-    "Следить за заявками на займы",
-    "Подготовить обращение в органы",
-  ],
-  "Перевёл деньги": [
-    "Связаться с банком немедленно",
-    "Сохранить чек и переписку",
-    "Подать заявление",
-    "Сообщить номер/аккаунт в базу",
-  ],
+type LocalizedRiskCard = {
+  text: LocalizedText;
+  risky: boolean;
+  reason: LocalizedText;
 };
 
-function PracticeTaskCard({ item, index }: { item: string; index: number }) {
+type LocalizedDataCard = {
+  text: LocalizedText;
+  zone: string;
+};
+
+type LocalizedZone = {
+  id: string;
+  label: LocalizedText;
+};
+
+type LocalizedScenario = {
+  text: LocalizedText;
+  options: Array<{ text: LocalizedText; safe: boolean }>;
+  reason: LocalizedText;
+};
+
+type LocalizedNumberCard = {
+  status: LocalizedText;
+  action: LocalizedText;
+  reason: LocalizedText;
+};
+
+function lt(value: LocalizedText, language: "ru" | "uz") {
+  return value[language];
+}
+
+const riskTrainingCards: LocalizedRiskCard[] = [
+  {
+    text: {
+      ru: "Ваша карта заблокирована. Срочно подтвердите данные по ссылке.",
+      uz: "Kartangiz bloklandi. Ma’lumotlarni havola orqali zudlik bilan tasdiqlang.",
+    },
+    risky: true,
+    reason: {
+      ru: "Есть срочность, угроза блокировки и ссылка для ввода данных.",
+      uz: "Shoshirish, bloklash tahdidi va ma’lumot kiritish uchun havola bor.",
+    },
+  },
+  {
+    text: {
+      ru: "Вы выиграли 1 000 000 сум. Отправьте фото паспорта для получения приза.",
+      uz: "Siz 1 000 000 so‘m yutdingiz. Sovrinni olish uchun pasport rasmini yuboring.",
+    },
+    risky: true,
+    reason: {
+      ru: "Обещание выигрыша и просьба отправить документ — высокий риск.",
+      uz: "Yutuq va hujjat yuborish talabi — yuqori xavf belgisi.",
+    },
+  },
+  {
+    text: {
+      ru: "Ваш заказ доставлен. Проверьте трек-номер в официальном приложении.",
+      uz: "Buyurtmangiz yetkazildi. Trek raqamini rasmiy ilovada tekshiring.",
+    },
+    risky: false,
+    reason: {
+      ru: "Безопаснее открывать трек внутри официального приложения.",
+      uz: "Trekni rasmiy ilova ichida ochish xavfsizroq.",
+    },
+  },
+  {
+    text: {
+      ru: "Служба безопасности банка просит назвать SMS-код для отмены перевода.",
+      uz: "Bank xavfsizlik xizmati o‘tkazmani bekor qilish uchun SMS-kodni so‘ramoqda.",
+    },
+    risky: true,
+    reason: {
+      ru: "SMS-код нельзя передавать никому, даже сотруднику банка.",
+      uz: "SMS-kodni hech kimga, hatto bank xodimiga ham aytib bo‘lmaydi.",
+    },
+  },
+  {
+    text: {
+      ru: "Напоминание: обновите приложение через официальный магазин приложений.",
+      uz: "Eslatma: ilovani rasmiy ilovalar do‘koni orqali yangilang.",
+    },
+    risky: false,
+    reason: {
+      ru: "Официальный магазин — нормальный и безопасный канал обновления.",
+      uz: "Rasmiy do‘kon — yangilash uchun odatiy va xavfsiz kanal.",
+    },
+  },
+];
+
+const dataSortingCards: LocalizedDataCard[] = [
+  { text: { ru: "Имя и город", uz: "Ism va shahar" }, zone: "public" },
+  { text: { ru: "Номер телефона", uz: "Telefon raqami" }, zone: "trusted" },
+  { text: { ru: "Фото паспорта", uz: "Pasport rasmi" }, zone: "trusted" },
+  { text: { ru: "SMS-код", uz: "SMS-kod" }, zone: "secret" },
+  { text: { ru: "CVV-код карты", uz: "Karta CVV-kodi" }, zone: "secret" },
+  { text: { ru: "Пароль от почты", uz: "Elektron pochta paroli" }, zone: "secret" },
+];
+
+const dataZones: LocalizedZone[] = [
+  { id: "public", label: { ru: "Можно указывать публично", uz: "Ommaviy ko‘rsatish mumkin" } },
+  { id: "trusted", label: { ru: "Только проверенным сервисам", uz: "Faqat ishonchli servislarga" } },
+  { id: "secret", label: { ru: "Никому не передавать", uz: "Hech kimga bermaslik" } },
+];
+
+const scenarioChoices: LocalizedScenario[] = [
+  {
+    text: {
+      ru: "В сообщении обещают выплату и просят перейти по короткой ссылке.",
+      uz: "Xabarda to‘lov va’da qilinib, qisqa havolaga o‘tish so‘ralgan.",
+    },
+    options: [
+      { text: { ru: "Перейти и проверить", uz: "O‘tib tekshirish" }, safe: false },
+      { text: { ru: "Открыть официальный сайт вручную", uz: "Rasmiy saytni qo‘lda ochish" }, safe: true },
+      { text: { ru: "Отправить ссылку друзьям", uz: "Havolani do‘stlarga yuborish" }, safe: false },
+    ],
+    reason: {
+      ru: "Безопаснее открыть официальный сайт вручную и не использовать ссылку из сообщения.",
+      uz: "Rasmiy saytni qo‘lda ochish va xabardagi havoladan foydalanmaslik xavfsizroq.",
+    },
+  },
+  {
+    text: {
+      ru: "Звонящий говорит, что он из банка, и просит назвать SMS-код.",
+      uz: "Qo‘ng‘iroq qilgan odam bankdan ekanini aytib, SMS-kodni so‘rayapti.",
+    },
+    options: [
+      { text: { ru: "Назвать код", uz: "Kodni aytish" }, safe: false },
+      { text: { ru: "Попросить перезвонить", uz: "Qayta qo‘ng‘iroq qilishni so‘rash" }, safe: false },
+      { text: { ru: "Завершить разговор и позвонить в банк самому", uz: "Suhbatni tugatib, bankka o‘zingiz qo‘ng‘iroq qilish" }, safe: true },
+    ],
+    reason: {
+      ru: "Код подтверждения нельзя сообщать никому. Связывайтесь с банком самостоятельно.",
+      uz: "Tasdiqlash kodini hech kimga aytmang. Bank bilan mustaqil bog‘laning.",
+    },
+  },
+  {
+    text: {
+      ru: "В Telegram прислали APK «для получения бонуса».",
+      uz: "Telegramda “bonus olish uchun” APK yuborishdi.",
+    },
+    options: [
+      { text: { ru: "Установить APK", uz: "APKni o‘rnatish" }, safe: false },
+      { text: { ru: "Проверить приложение в официальном магазине", uz: "Ilovani rasmiy do‘konda tekshirish" }, safe: true },
+      { text: { ru: "Отключить защиту телефона", uz: "Telefon himoyasini o‘chirish" }, safe: false },
+    ],
+    reason: {
+      ru: "Приложения безопаснее устанавливать только из официального магазина или официального сайта.",
+      uz: "Ilovalarni faqat rasmiy do‘kon yoki rasmiy saytdan o‘rnatish xavfsizroq.",
+    },
+  },
+];
+
+const homeChecklistItems: LocalizedText[] = [
+  { ru: "Проверить активные сеансы Telegram", uz: "Telegramdagi faol seanslarni tekshirish" },
+  { ru: "Включить двухфакторную защиту на почте", uz: "Pochtada ikki bosqichli himoyani yoqish" },
+  { ru: "Проверить, кто видит номер телефона в мессенджере", uz: "Messengerda telefon raqamini kim ko‘rishini tekshirish" },
+  { ru: "Удалить неизвестные приложения", uz: "Noma’lum ilovalarni o‘chirish" },
+];
+
+const numberPracticeCards: LocalizedNumberCard[] = [
+  {
+    status: { ru: "Не найден", uz: "Topilmadi" },
+    action: { ru: "Не считать номер безопасным автоматически", uz: "Raqamni avtomatik xavfsiz deb hisoblamaslik" },
+    reason: { ru: "Отсутствие жалоб не доказывает безопасность номера.", uz: "Shikoyatlar yo‘qligi raqam xavfsizligini isbotlamaydi." },
+  },
+  {
+    status: { ru: "Подозрительно", uz: "Shubhali" },
+    action: { ru: "Не отвечать и сохранить доказательства", uz: "Javob bermaslik va dalillarni saqlash" },
+    reason: { ru: "Есть признаки риска, лучше не продолжать разговор.", uz: "Xavf belgilari bor, suhbatni davom ettirmagan ma’qul." },
+  },
+  {
+    status: { ru: "Опасно", uz: "Xavfli" },
+    action: { ru: "Заблокировать номер и отправить репорт", uz: "Raqamni bloklash va xabar yuborish" },
+    reason: { ru: "Подтверждённый риск нужно зафиксировать для модерации.", uz: "Tasdiqlangan xavfni moderatsiya uchun qayd etish kerak." },
+  },
+];
+
+const incidentChecklists: Record<string, { label: LocalizedText; steps: LocalizedText[] }> = {
+  code: {
+    label: { ru: "Назвал код", uz: "Kodni aytdim" },
+    steps: [
+      { ru: "Сразу заблокировать карту или аккаунт", uz: "Darhol karta yoki akkauntni bloklash" },
+      { ru: "Сменить пароль", uz: "Parolni almashtirish" },
+      { ru: "Отключить чужие сеансы", uz: "Begona seanslarni o‘chirish" },
+      { ru: "Сообщить в банк или поддержку", uz: "Bank yoki qo‘llab-quvvatlash xizmatiga xabar berish" },
+    ],
+  },
+  apk: {
+    label: { ru: "Установил APK", uz: "APK o‘rnatdim" },
+    steps: [
+      { ru: "Удалить приложение", uz: "Ilovani o‘chirish" },
+      { ru: "Отключить интернет при подозрительной активности", uz: "Shubhali faollikda internetni o‘chirish" },
+      { ru: "Проверить разрешения приложений", uz: "Ilova ruxsatlarini tekshirish" },
+      { ru: "Сменить пароли с другого устройства", uz: "Parollarni boshqa qurilmadan almashtirish" },
+    ],
+  },
+  passport: {
+    label: { ru: "Отправил паспорт", uz: "Pasport yubordim" },
+    steps: [
+      { ru: "Сохранить переписку", uz: "Yozishmani saqlash" },
+      { ru: "Сообщить в сервис или банк", uz: "Servis yoki bankka xabar berish" },
+      { ru: "Следить за заявками на займы", uz: "Kredit arizalarini kuzatish" },
+      { ru: "Подготовить обращение в органы", uz: "Tegishli organlarga murojaat tayyorlash" },
+    ],
+  },
+  money: {
+    label: { ru: "Перевёл деньги", uz: "Pul o‘tkazdim" },
+    steps: [
+      { ru: "Связаться с банком немедленно", uz: "Darhol bank bilan bog‘lanish" },
+      { ru: "Сохранить чек и переписку", uz: "Chek va yozishmani saqlash" },
+      { ru: "Подать заявление", uz: "Ariza berish" },
+      { ru: "Сообщить номер или аккаунт в базу", uz: "Raqam yoki akkauntni bazaga xabar qilish" },
+    ],
+  },
+};
+function PracticeTaskCard({ item, index, language }: { item: string; index: number; language: "ru" | "uz" }) {
   const [riskAnswers, setRiskAnswers] = useState<Record<number, boolean>>({});
-  const [rules, setRules] = useState(["", "", ""]);
+  const [rules, setRules] = useState(["", "", "", "", ""]);
   const [zones, setZones] = useState<Record<string, string>>({});
   const [scenarioAnswers, setScenarioAnswers] = useState<Record<number, number>>({});
   const [checkedItems, setCheckedItems] = useState<Record<string, boolean>>({});
-  const [selectedIncident, setSelectedIncident] = useState("Назвал код");
+  const [selectedIncident, setSelectedIncident] = useState("code");
   const [reportDraft, setReportDraft] = useState("");
   const [done, setDone] = useState(false);
+  const ui = lessonUi[language];
   const [title, ...descriptionParts] = item.split(". ");
   const description = descriptionParts.join(". ") || item;
   const lower = item.toLowerCase();
+  const taskTitle = title || `${ui.taskFallback} ${index + 1}`;
   const isRiskCards =
-    lower.includes("сообщени") &&
-    (lower.includes("карточ") || lower.includes("6 учебных"));
+    lower.includes("сообщени") ||
+    lower.includes("xabar") ||
+    lower.includes("карточ") ||
+    lower.includes("karta");
   const isRules =
-    lower.includes("запишите 3") ||
-    lower.includes("3 личных правила") ||
-    lower.includes("10 правил") ||
+    lower.includes("правил") ||
+    lower.includes("qoid") ||
     lower.includes("карточку безопасности");
-  const isSorting = lower.includes("распредел") && lower.includes("зон");
-  const isScenario = lower.includes("учебный кейс") || lower.includes("безопасное действие");
-  const isHomeChecklist = lower.includes("домашнее задание") || lower.includes("реальный элемент");
-  const isNumberPractice = lower.includes("карточки номеров") || lower.includes("репорт");
-  const isIncidentPractice = lower.includes("назвал код") || lower.includes("персональный чек-лист");
+  const isSorting =
+    lower.includes("распредел") ||
+    lower.includes("taqsim") ||
+    lower.includes("зон") ||
+    lower.includes("zona");
+  const isScenario =
+    lower.includes("кейс") ||
+    lower.includes("case") ||
+    lower.includes("безопасное действие") ||
+    lower.includes("xavfsiz harakat");
+  const isHomeChecklist =
+    lower.includes("домаш") ||
+    lower.includes("real") ||
+    lower.includes("tekshir");
+  const isNumberPractice =
+    lower.includes("номер") ||
+    lower.includes("raqam") ||
+    lower.includes("репорт") ||
+    lower.includes("report");
+  const isIncidentPractice =
+    lower.includes("назвал код") ||
+    lower.includes("kod") ||
+    lower.includes("чек-лист") ||
+    lower.includes("checklist");
 
   if (isRiskCards) {
     const answeredCount = Object.keys(riskAnswers).length;
@@ -356,7 +510,7 @@ function PracticeTaskCard({ item, index }: { item: string; index: number }) {
         <div className="practice-task-head">
           <CheckCircle2 size={20} />
           <div>
-            <strong>{title || `Задание ${index + 1}`}</strong>
+            <strong>{taskTitle}</strong>
             <p>{description}</p>
           </div>
         </div>
@@ -370,21 +524,21 @@ function PracticeTaskCard({ item, index }: { item: string; index: number }) {
                 className={`practice-risk-card ${
                   answered ? (correct ? "correct" : "wrong") : ""
                 }`}
-                key={card.text}
+                key={lt(card.text, language)}
               >
-                <p>{card.text}</p>
+                <p>{lt(card.text, language)}</p>
                 <div>
                   <button onClick={() => setRiskAnswers({ ...riskAnswers, [cardIndex]: true })}>
-                    Риск есть
+                    {ui.riskExists}
                   </button>
                   <button onClick={() => setRiskAnswers({ ...riskAnswers, [cardIndex]: false })}>
-                    Безопасно
+                    {ui.safe}
                   </button>
                 </div>
                 {answered && (
                   <small>
-                    {correct ? "Верно. " : "Не совсем. "}
-                    {card.reason}
+                    {correct ? `${ui.correct} ` : `${ui.almost} `}
+                    {lt(card.reason, language)}
                   </small>
                 )}
               </div>
@@ -392,48 +546,42 @@ function PracticeTaskCard({ item, index }: { item: string; index: number }) {
           })}
         </div>
         <div className="practice-score-line">
-          Выполнено: {answeredCount}/{riskTrainingCards.length}
+          {ui.completed}: {answeredCount}/{riskTrainingCards.length}
         </div>
       </article>
     );
   }
 
   if (isRules) {
-    const ruleCount = lower.includes("10 правил") || lower.includes("карточку безопасности") ? 5 : 3;
-    const visibleRules = rules.length === ruleCount ? rules : Array(ruleCount).fill("");
+    const ruleCount = lower.includes("10") || lower.includes("карточку") ? 5 : 3;
+    const visibleRules = rules.slice(0, ruleCount);
     return (
       <article className="practice-interactive-card">
         <div className="practice-task-head">
           <CheckCircle2 size={20} />
           <div>
-            <strong>{title || `Задание ${index + 1}`}</strong>
-            <p>Сформулируйте свои правила коротко и конкретно.</p>
+            <strong>{taskTitle}</strong>
+            <p>{ui.ruleInstruction}</p>
           </div>
         </div>
         <div className="practice-rule-list">
           {visibleRules.map((rule, ruleIndex) => (
             <label key={ruleIndex}>
-              Правило {ruleIndex + 1}
+              {ui.ruleLabel} {ruleIndex + 1}
               <input
                 value={rule}
                 onChange={(event) => {
-                  const nextRules = [...visibleRules];
+                  const nextRules = [...rules];
                   nextRules[ruleIndex] = event.target.value;
                   setRules(nextRules);
                 }}
-                placeholder={
-                  ruleIndex === 0
-                    ? "Например: не называю SMS-коды"
-                    : "Введите своё правило"
-                }
+                placeholder={ruleIndex === 0 ? ui.ruleExample : ui.rulePlaceholder}
               />
             </label>
           ))}
         </div>
         {visibleRules.filter(Boolean).length === ruleCount && (
-          <div className="practice-score-line success">
-            Отлично. Эти правила можно использовать как личную памятку.
-          </div>
+          <div className="practice-score-line success">{ui.rulesSuccess}</div>
         )}
       </article>
     );
@@ -446,8 +594,8 @@ function PracticeTaskCard({ item, index }: { item: string; index: number }) {
         <div className="practice-task-head">
           <CheckCircle2 size={20} />
           <div>
-            <strong>{title || `Задание ${index + 1}`}</strong>
-            <p>Выберите безопасное действие в каждом кейсе.</p>
+            <strong>{taskTitle}</strong>
+            <p>{ui.scenarioInstruction}</p>
           </div>
         </div>
         <div className="practice-risk-grid">
@@ -460,13 +608,13 @@ function PracticeTaskCard({ item, index }: { item: string; index: number }) {
                 className={`practice-risk-card ${
                   answered ? (correct ? "correct" : "wrong") : ""
                 }`}
-                key={scenario.text}
+                key={lt(scenario.text, language)}
               >
-                <p>{scenario.text}</p>
+                <p>{lt(scenario.text, language)}</p>
                 <div>
                   {scenario.options.map((option, optionIndex) => (
                     <button
-                      key={option.text}
+                      key={lt(option.text, language)}
                       onClick={() =>
                         setScenarioAnswers({
                           ...scenarioAnswers,
@@ -474,14 +622,14 @@ function PracticeTaskCard({ item, index }: { item: string; index: number }) {
                         })
                       }
                     >
-                      {option.text}
+                      {lt(option.text, language)}
                     </button>
                   ))}
                 </div>
                 {answered && (
                   <small>
-                    {correct ? "Верно. " : "Не совсем. "}
-                    {scenario.reason}
+                    {correct ? `${ui.correct} ` : `${ui.almost} `}
+                    {lt(scenario.reason, language)}
                   </small>
                 )}
               </div>
@@ -489,7 +637,7 @@ function PracticeTaskCard({ item, index }: { item: string; index: number }) {
           })}
         </div>
         <div className="practice-score-line">
-          Решено: {answeredCount}/{scenarioChoices.length}
+          {ui.solved}: {answeredCount}/{scenarioChoices.length}
         </div>
       </article>
     );
@@ -502,29 +650,32 @@ function PracticeTaskCard({ item, index }: { item: string; index: number }) {
         <div className="practice-task-head">
           <CheckCircle2 size={20} />
           <div>
-            <strong>{title || `Задание ${index + 1}`}</strong>
-            <p>Отметьте, что вы готовы проверить после урока.</p>
+            <strong>{taskTitle}</strong>
+            <p>{ui.checklistInstruction}</p>
           </div>
         </div>
         <div className="practice-checklist">
-          {homeChecklistItems.map((checkItem) => (
-            <label key={checkItem}>
-              <input
-                type="checkbox"
-                checked={Boolean(checkedItems[checkItem])}
-                onChange={(event) =>
-                  setCheckedItems({
-                    ...checkedItems,
-                    [checkItem]: event.target.checked,
-                  })
-                }
-              />
-              {checkItem}
-            </label>
-          ))}
+          {homeChecklistItems.map((checkItem) => {
+            const text = lt(checkItem, language);
+            return (
+              <label key={text}>
+                <input
+                  type="checkbox"
+                  checked={Boolean(checkedItems[text])}
+                  onChange={(event) =>
+                    setCheckedItems({
+                      ...checkedItems,
+                      [text]: event.target.checked,
+                    })
+                  }
+                />
+                {text}
+              </label>
+            );
+          })}
         </div>
         <div className={checkedCount ? "practice-score-line success" : "practice-score-line"}>
-          Выбрано: {checkedCount}/{homeChecklistItems.length}
+          {ui.selected}: {checkedCount}/{homeChecklistItems.length}
         </div>
       </article>
     );
@@ -536,16 +687,16 @@ function PracticeTaskCard({ item, index }: { item: string; index: number }) {
         <div className="practice-task-head">
           <CheckCircle2 size={20} />
           <div>
-            <strong>{title || `Задание ${index + 1}`}</strong>
-            <p>Сопоставьте статус номера с безопасным действием.</p>
+            <strong>{taskTitle}</strong>
+            <p>{ui.numberInstruction}</p>
           </div>
         </div>
         <div className="practice-sort-list">
           {numberPracticeCards.map((card) => (
-            <div className="correct" key={card.status}>
-              <strong>{card.status}</strong>
-              <p>{card.action}</p>
-              <small>{card.reason}</small>
+            <div className="correct" key={lt(card.status, language)}>
+              <strong>{lt(card.status, language)}</strong>
+              <p>{lt(card.action, language)}</p>
+              <small>{lt(card.reason, language)}</small>
             </div>
           ))}
         </div>
@@ -554,29 +705,30 @@ function PracticeTaskCard({ item, index }: { item: string; index: number }) {
   }
 
   if (isIncidentPractice) {
+    const selectedChecklist = incidentChecklists[selectedIncident] || incidentChecklists.code;
     return (
       <article className="practice-interactive-card">
         <div className="practice-task-head">
           <CheckCircle2 size={20} />
           <div>
-            <strong>{title || `Задание ${index + 1}`}</strong>
-            <p>Выберите ситуацию и получите чек-лист первых действий.</p>
+            <strong>{taskTitle}</strong>
+            <p>{ui.incidentInstruction}</p>
           </div>
         </div>
         <div className="practice-incident-tabs">
-          {Object.keys(incidentChecklists).map((incident) => (
+          {Object.entries(incidentChecklists).map(([incident, config]) => (
             <button
               className={selectedIncident === incident ? "selected" : ""}
               key={incident}
               onClick={() => setSelectedIncident(incident)}
             >
-              {incident}
+              {lt(config.label, language)}
             </button>
           ))}
         </div>
         <ol className="practice-incident-list">
-          {incidentChecklists[selectedIncident].map((step) => (
-            <li key={step}>{step}</li>
+          {selectedChecklist.steps.map((step) => (
+            <li key={lt(step, language)}>{lt(step, language)}</li>
           ))}
         </ol>
       </article>
@@ -590,26 +742,27 @@ function PracticeTaskCard({ item, index }: { item: string; index: number }) {
         <div className="practice-task-head">
           <CheckCircle2 size={20} />
           <div>
-            <strong>{title || `Задание ${index + 1}`}</strong>
+            <strong>{taskTitle}</strong>
             <p>{description}</p>
           </div>
         </div>
         <div className="practice-sort-list">
           {dataSortingCards.map((card) => {
-            const selectedZone = zones[card.text];
+            const cardText = lt(card.text, language);
+            const selectedZone = zones[cardText];
             const answered = Boolean(selectedZone);
             const correct = selectedZone === card.zone;
             return (
-              <div className={answered ? (correct ? "correct" : "wrong") : ""} key={card.text}>
-                <strong>{card.text}</strong>
+              <div className={answered ? (correct ? "correct" : "wrong") : ""} key={cardText}>
+                <strong>{cardText}</strong>
                 <div>
                   {dataZones.map((zone) => (
                     <button
                       className={selectedZone === zone.id ? "selected" : ""}
                       key={zone.id}
-                      onClick={() => setZones({ ...zones, [card.text]: zone.id })}
+                      onClick={() => setZones({ ...zones, [cardText]: zone.id })}
                     >
-                      {zone.label}
+                      {lt(zone.label, language)}
                     </button>
                   ))}
                 </div>
@@ -618,7 +771,7 @@ function PracticeTaskCard({ item, index }: { item: string; index: number }) {
           })}
         </div>
         <div className="practice-score-line">
-          Распределено: {completedCount}/{dataSortingCards.length}
+          {ui.sorted}: {completedCount}/{dataSortingCards.length}
         </div>
       </article>
     );
@@ -629,7 +782,7 @@ function PracticeTaskCard({ item, index }: { item: string; index: number }) {
       <div className="practice-task-head">
         <CheckCircle2 size={20} />
         <div>
-          <strong>{title || `Задание ${index + 1}`}</strong>
+          <strong>{taskTitle}</strong>
           <p>{description}</p>
         </div>
       </div>
@@ -637,21 +790,29 @@ function PracticeTaskCard({ item, index }: { item: string; index: number }) {
         className={done ? "practice-done-button done" : "practice-done-button"}
         onClick={() => setDone(!done)}
       >
-        {done ? "Готово" : "Отметить как выполненное"}
+        {done ? ui.done : ui.markDone}
       </button>
-      {lower.includes("шаблон обращения") || lower.includes("корректный репорт") ? (
+      {(lower.includes("шаблон обращения") ||
+        lower.includes("корректный репорт") ||
+        lower.includes("murojaat") ||
+        lower.includes("report")) && (
         <textarea
           className="practice-draft-field"
           value={reportDraft}
           onChange={(event) => setReportDraft(event.target.value)}
-          placeholder="Кратко опишите факты: дата, канал связи, что просили сделать, сумма ущерба, какие доказательства есть."
+          placeholder={ui.reportPlaceholder}
         />
-      ) : null}
+      )}
     </article>
   );
 }
-
-function LessonSectionCard({ section }: { section: LessonSection }) {
+function LessonSectionCard({
+  section,
+  language,
+}: {
+  section: LessonSection;
+  language: "ru" | "uz";
+}) {
   const listMode = section.type === "risk" || section.type === "steps";
   const exerciseMode = section.type === "practice";
   return (
@@ -663,7 +824,7 @@ function LessonSectionCard({ section }: { section: LessonSection }) {
       {exerciseMode ? (
         <div className="lesson-practice-tasks">
           {section.items.map((item, index) => (
-            <PracticeTaskCard item={item} index={index} key={item} />
+            <PracticeTaskCard item={item} index={index} key={item} language={language} />
           ))}
         </div>
       ) : listMode ? (
@@ -866,8 +1027,8 @@ function StructuredTaskCard({
           />
           {textAnswer.trim().length > 0 && (
             <div className="practice-score-line success">
-              {ui.answerSaved}
-            </div>
+            {ui.rulesSuccess}
+          </div>
           )}
         </>
       )}
@@ -1308,6 +1469,7 @@ export default function LessonPage() {
                 : theorySections.map((section, index) => (
                     <LessonSectionCard
                       key={`${section.title}-${index}`}
+                      language={language}
                       section={section}
                     />
                   ))}
@@ -1346,6 +1508,7 @@ export default function LessonPage() {
                   : practiceSections.map((section, index) => (
                       <LessonSectionCard
                         key={`${section.title}-${index}`}
+                        language={language}
                         section={section}
                       />
                     ))}

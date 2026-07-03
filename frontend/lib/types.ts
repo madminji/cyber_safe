@@ -6,8 +6,22 @@ export type User = {
   language: "ru" | "uz";
   role: "citizen" | "moderator" | "admin";
   points: number;
+  rank: number;
   is_verified: boolean;
   date_joined: string;
+};
+
+export type AdminUser = User & {
+  is_active: boolean;
+  is_staff: boolean;
+  updated_at: string;
+};
+
+export type LeaderboardEntry = {
+  rank: number;
+  user_name: string;
+  points: number;
+  is_current_user: boolean;
 };
 
 export type QuizChoice = {
@@ -243,7 +257,11 @@ export type GameResult = {
 
 export type ModerationReport = {
   id: string;
+  target_type: "phone" | "url" | "account" | "card" | "other";
+  target_value: string;
+  target_display: string;
   phone_masked: string;
+  phone_full: string;
   scam_type: string;
   incident_date: string;
   story: string;
@@ -254,8 +272,8 @@ export type ModerationReport = {
   created_at: string;
   reporter_id: string;
   reporter_name: string;
-  number_id: string;
-  number_status: "reported" | "suspicious" | "scammer" | "verified_scammer";
+  number_id: string | null;
+  number_status: "reported" | "suspicious" | "scammer" | "verified_scammer" | "";
   approved_reports_count: number;
   number_verified: boolean;
   moderated_at: string | null;
@@ -264,6 +282,7 @@ export type ModerationReport = {
 export type ModerationNumber = {
   number_id: string;
   phone_masked: string;
+  phone_full: string;
   status: "reported" | "suspicious" | "scammer" | "verified_scammer";
   approved_reports_count: number;
   number_verified: boolean;

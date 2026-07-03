@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import {
   AlertTriangle,
@@ -17,7 +17,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { useAuth } from "@/context/auth-context";
 import { useLanguage } from "@/context/language-context";
@@ -48,6 +48,7 @@ export default function SimulatorPage() {
   const [feedbackPositive, setFeedbackPositive] = useState(true);
   const [customAnswer, setCustomAnswer] = useState("");
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
+  const chatEndRef = useRef<HTMLDivElement | null>(null);
   const [busy, setBusy] = useState(true);
   const [error, setError] = useState("");
 
@@ -58,6 +59,10 @@ export default function SimulatorPage() {
       .catch((requestError) => setError(requestError.message))
       .finally(() => setBusy(false));
   }, [language]);
+
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+  }, [chatMessages, busy]);
 
   const start = async (scenario: GameScenario) => {
     if (!user) return;
@@ -97,7 +102,7 @@ export default function SimulatorPage() {
     if (!game) return;
     const freeText = customAnswer.trim();
     if (freeText.length < 2) {
-      setError("Напишите ответ или выберите одну из готовых стратегий.");
+      setError(t("sim.writeAnswerError"));
       return;
     }
     setBusy(true);
@@ -340,6 +345,7 @@ export default function SimulatorPage() {
                       <span />
                     </div>
                   )}
+                  <div ref={chatEndRef} />
                 </div>
               </div>
             )}
@@ -358,14 +364,14 @@ export default function SimulatorPage() {
             )}
 
             <div className="game-choices">
-              <span>Ваш ответ</span>
+              <span>{t("sim.chatAnswerLabel")}</span>
               <label className="custom-answer-box">
                 <textarea
                   value={customAnswer}
                   onChange={(event) => setCustomAnswer(event.target.value)}
                   maxLength={600}
                   disabled={busy}
-                  placeholder="Напишите сообщение собеседнику..."
+                  placeholder={t("sim.chatAnswerPlaceholder")}
                   rows={3}
                   onKeyDown={(event) => {
                     if (event.key === "Enter" && !event.shiftKey) {
@@ -380,7 +386,7 @@ export default function SimulatorPage() {
                 disabled={busy || customAnswer.trim().length < 2}
                 onClick={answer}
               >
-                {busy ? "Отправляем..." : "Отправить"} <ArrowRight size={17} />
+                {busy ? t("sim.sending") : t("sim.send")} <ArrowRight size={17} />
               </button>
             </div>
             {error && <div className="form-error">{error}</div>}
@@ -461,3 +467,4 @@ export default function SimulatorPage() {
     </section>
   );
 }
+

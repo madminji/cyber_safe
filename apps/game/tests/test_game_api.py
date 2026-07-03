@@ -119,6 +119,29 @@ def test_choice_from_another_step_is_rejected(scenario, user):
 
 
 @pytest.mark.django_db
+def test_free_text_answer_without_choice_continues_dialog(scenario, user):
+    client = client_for(user)
+    started = client.post(
+        reverse("game-start"),
+        {"scenario_id": scenario.id, "language": "ru"},
+        format="json",
+    )
+
+    response = client.post(
+        reverse("game-answer", kwargs={"session_id": started.data["id"]}),
+        {"custom_text": "Хорошо, сейчас сделаю."},
+        format="json",
+    )
+
+    assert response.status_code == 200
+    assert response.data["completed"] is False
+    assert response.data["session"]["message"]
+    turn = GameTurn.objects.get()
+    assert turn.custom_text == "Хорошо, сейчас сделаю."
+    assert turn.choice_id is not None
+
+
+@pytest.mark.django_db
 def test_other_user_cannot_access_session(scenario, user):
     owner = client_for(user)
     started = owner.post(

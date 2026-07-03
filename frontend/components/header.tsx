@@ -26,6 +26,7 @@ const links = [
 
 const secondaryLinks = [
   { href: "/daily-quiz", label: "header.daily" },
+  { href: "/leaderboard", label: "header.leaderboard" },
   { href: "/certificates", label: "header.certificates" },
   { href: "/numbers/report", label: "header.report" },
 ] as const;

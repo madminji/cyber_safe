@@ -72,6 +72,37 @@ def test_citizen_can_report_and_pending_report_is_not_public(citizen):
 
 
 @pytest.mark.django_db
+def test_citizen_can_report_non_phone_target(citizen, moderator):
+    client = authenticated_client(citizen)
+    payload = {
+        "target_type": CommunityReport.TargetType.URL,
+        "target_value": "https://fake-bank.example/login",
+        "scam_type": CommunityReport.ScamType.MALWARE,
+        "incident_date": date.today().isoformat(),
+        "story": "The website asked for SMS code and card details.",
+        "region": "tashkent",
+    }
+
+    created = client.post(reverse("scammer-report-create"), payload, format="json")
+
+    assert created.status_code == 201
+    assert created.data["target_type"] == CommunityReport.TargetType.URL
+    assert created.data["target_display"] == payload["target_value"]
+    assert created.data["phone_masked"] == ""
+    assert ScammerNumber.objects.count() == 0
+
+    moderator_client = authenticated_client(moderator)
+    moderation = moderator_client.get(
+        reverse("scammer-moderation-list"),
+        {"status": CommunityReport.Status.PENDING},
+    )
+
+    assert moderation.status_code == 200
+    assert moderation.data[0]["target_display"] == payload["target_value"]
+    assert moderation.data[0]["number_id"] is None
+
+
+@pytest.mark.django_db
 def test_duplicate_report_within_24_hours_is_rejected(citizen):
     client = authenticated_client(citizen)
     first = client.post(
@@ -190,6 +221,7 @@ def test_moderator_report_contains_number_state(citizen, moderator):
 
     assert response.status_code == 200
     report = response.data[0]
+    assert report["phone_full"] == "+998931112233"
     assert report["number_status"] == ScammerNumber.Status.REPORTED
     assert report["approved_reports_count"] == 0
     assert report["number_verified"] is False
@@ -222,6 +254,7 @@ def test_approved_number_is_visible_in_moderation_number_registry(citizen, moder
     assert len(response.data) == 1
     number = response.data[0]
     assert number["phone_masked"] == "+99893***2233"
+    assert number["phone_full"] == "+998931112233"
     assert number["status"] == ScammerNumber.Status.SUSPICIOUS
     assert number["approved_reports_count"] == 1
     assert number["number_verified"] is False

@@ -16,8 +16,10 @@ import {
   Download,
   Trash2,
   ExternalLink,
+  Save,
   X,
   XCircle,
+  Users,
 } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
@@ -30,6 +32,7 @@ import { getRegions, getScamLabel } from "@/lib/scam-data";
 import {
   AdminCourseContent,
   AdminLesson,
+  AdminUser,
   ModerationNumber,
   ModerationReport,
   ModerationSummary,
@@ -37,8 +40,9 @@ import {
 
 type Filter = "pending" | "approved" | "rejected";
 type NumberFilter = "suspicious" | "scammer" | "verified_scammer" | "reported";
-type ModerationTab = "reports" | "lessons";
+type ModerationTab = "reports" | "lessons" | "users";
 type ReportPanel = "reports" | "numbers";
+type UserRoleFilter = "all" | "citizen" | "moderator" | "admin";
 
 type LessonImportResult = {
   status: "created" | "updated";
@@ -49,6 +53,159 @@ type LessonImportResult = {
   tasks_count: number;
   questions_count: number;
 };
+
+const moderationLocalText = {
+  ru: {
+    tabReports: "\u0417\u0430\u044f\u0432\u043a\u0438",
+    tabLessons: "\u0423\u0440\u043e\u043a\u0438",
+    tabUsers: "\u041f\u043e\u043b\u044c\u0437\u043e\u0432\u0430\u0442\u0435\u043b\u0438",
+    citizenReports: "\u0417\u0430\u044f\u0432\u043a\u0438 \u0433\u0440\u0430\u0436\u0434\u0430\u043d",
+    numberRegistry: "\u0420\u0435\u0435\u0441\u0442\u0440 \u043d\u043e\u043c\u0435\u0440\u043e\u0432",
+    contentManagement: "\u0423\u043f\u0440\u0430\u0432\u043b\u0435\u043d\u0438\u0435 \u043a\u043e\u043d\u0442\u0435\u043d\u0442\u043e\u043c",
+    lessonImport: "\u0418\u043c\u043f\u043e\u0440\u0442 JSON-\u0443\u0440\u043e\u043a\u0430",
+    lessonImportText:
+      "\u0417\u0430\u0433\u0440\u0443\u0437\u0438\u0442\u0435 \u043e\u0434\u0438\u043d JSON-\u0444\u0430\u0439\u043b \u0443\u0440\u043e\u043a\u0430 \u0432 \u0443\u043d\u0438\u0444\u0438\u0446\u0438\u0440\u043e\u0432\u0430\u043d\u043d\u043e\u043c \u0444\u043e\u0440\u043c\u0430\u0442\u0435. \u041f\u043e\u0432\u0442\u043e\u0440\u043d\u0430\u044f \u0437\u0430\u0433\u0440\u0443\u0437\u043a\u0430 \u043e\u0431\u043d\u043e\u0432\u0438\u0442 \u0443\u0440\u043e\u043a \u0431\u0435\u0437 \u0434\u0443\u0431\u043b\u0435\u0439.",
+    lessonJsonFile: "JSON-\u0444\u0430\u0439\u043b \u0443\u0440\u043e\u043a\u0430",
+    chooseLessonJson: "\u0412\u044b\u0431\u0435\u0440\u0438\u0442\u0435 JSON-\u0444\u0430\u0439\u043b \u0443\u0440\u043e\u043a\u0430.",
+    importing: "\u0417\u0430\u0433\u0440\u0443\u0436\u0430\u0435\u043c...",
+    importLesson: "\u0418\u043c\u043f\u043e\u0440\u0442\u0438\u0440\u043e\u0432\u0430\u0442\u044c \u0443\u0440\u043e\u043a",
+    selectedFile: "\u0412\u044b\u0431\u0440\u0430\u043d \u0444\u0430\u0439\u043b:",
+    lessonCreated: "\u0423\u0440\u043e\u043a \u0441\u043e\u0437\u0434\u0430\u043d",
+    lessonUpdated: "\u0423\u0440\u043e\u043a \u043e\u0431\u043d\u043e\u0432\u043b\u0451\u043d",
+    blocks: "\u0431\u043b\u043e\u043a\u043e\u0432",
+    tasks: "\u0437\u0430\u0434\u0430\u043d\u0438\u0439",
+    questions: "\u0432\u043e\u043f\u0440\u043e\u0441\u043e\u0432",
+    coursesLessons: "\u041a\u0443\u0440\u0441\u044b \u0438 \u0443\u0440\u043e\u043a\u0438",
+    contentManagerText: "\u041f\u0440\u043e\u0441\u043c\u043e\u0442\u0440, \u0441\u043a\u0430\u0447\u0438\u0432\u0430\u043d\u0438\u0435 JSON \u0438 \u0443\u0434\u0430\u043b\u0435\u043d\u0438\u0435 \u0443\u0440\u043e\u043a\u043e\u0432.",
+    loadingCourses: "\u0417\u0430\u0433\u0440\u0443\u0436\u0430\u0435\u043c \u043a\u0443\u0440\u0441\u044b...",
+    noCourses: "\u041a\u0443\u0440\u0441\u044b \u043f\u043e\u043a\u0430 \u043d\u0435 \u043d\u0430\u0439\u0434\u0435\u043d\u044b.",
+    lessons: "\u0443\u0440\u043e\u043a\u043e\u0432",
+    published: "\u043e\u043f\u0443\u0431\u043b\u0438\u043a\u043e\u0432\u0430\u043d",
+    hidden: "\u0441\u043a\u0440\u044b\u0442",
+    noModule: "\u0411\u0435\u0437 \u043c\u043e\u0434\u0443\u043b\u044f",
+    open: "\u041e\u0442\u043a\u0440\u044b\u0442\u044c",
+    delete: "\u0423\u0434\u0430\u043b\u0438\u0442\u044c",
+    deleteLessonConfirm: "\u0423\u0434\u0430\u043b\u0438\u0442\u044c \u0443\u0440\u043e\u043a \"{title}\"? \u042d\u0442\u043e \u0434\u0435\u0439\u0441\u0442\u0432\u0438\u0435 \u043d\u0435\u043b\u044c\u0437\u044f \u043e\u0442\u043c\u0435\u043d\u0438\u0442\u044c.",
+    userManagement: "\u0423\u043f\u0440\u0430\u0432\u043b\u0435\u043d\u0438\u0435 \u043f\u043e\u043b\u044c\u0437\u043e\u0432\u0430\u0442\u0435\u043b\u044f\u043c\u0438",
+    platformUsers: "\u041f\u043e\u043b\u044c\u0437\u043e\u0432\u0430\u0442\u0435\u043b\u0438 \u043f\u043b\u0430\u0442\u0444\u043e\u0440\u043c\u044b",
+    userManagementText:
+      "\u0410\u0434\u043c\u0438\u043d\u0438\u0441\u0442\u0440\u0430\u0442\u043e\u0440 \u043c\u043e\u0436\u0435\u0442 \u043c\u0435\u043d\u044f\u0442\u044c \u0440\u043e\u043b\u044c \u043f\u043e\u043b\u044c\u0437\u043e\u0432\u0430\u0442\u0435\u043b\u044f, \u0430\u043a\u0442\u0438\u0432\u043d\u043e\u0441\u0442\u044c \u0430\u043a\u043a\u0430\u0443\u043d\u0442\u0430 \u0438 \u043a\u043e\u043b\u0438\u0447\u0435\u0441\u0442\u0432\u043e \u0431\u0430\u043b\u043b\u043e\u0432. \u0421\u0432\u043e\u0439 \u0430\u043a\u043a\u0430\u0443\u043d\u0442 \u043d\u0435\u043b\u044c\u0437\u044f \u043f\u043e\u043d\u0438\u0437\u0438\u0442\u044c \u0438\u043b\u0438 \u043e\u0442\u043a\u043b\u044e\u0447\u0438\u0442\u044c.",
+    searchByName: "\u041f\u043e\u0438\u0441\u043a \u043f\u043e \u0438\u043c\u0435\u043d\u0438",
+    allRoles: "\u0412\u0441\u0435 \u0440\u043e\u043b\u0438",
+    citizens: "\u0413\u0440\u0430\u0436\u0434\u0430\u043d\u0435",
+    moderators: "\u041c\u043e\u0434\u0435\u0440\u0430\u0442\u043e\u0440\u044b",
+    admins: "\u0410\u0434\u043c\u0438\u043d\u044b",
+    loadingUsers: "\u0417\u0430\u0433\u0440\u0443\u0436\u0430\u0435\u043c \u043f\u043e\u043b\u044c\u0437\u043e\u0432\u0430\u0442\u0435\u043b\u0435\u0439...",
+    noUsers: "\u041f\u043e\u043b\u044c\u0437\u043e\u0432\u0430\u0442\u0435\u043b\u0438 \u043d\u0435 \u043d\u0430\u0439\u0434\u0435\u043d\u044b.",
+    noName: "\u0411\u0435\u0437 \u0438\u043c\u0435\u043d\u0438",
+    pointsShort: "\u0431\u0430\u043b\u043b\u043e\u0432",
+    active: "\u0430\u043a\u0442\u0438\u0432\u0435\u043d",
+    blocked: "\u0437\u0430\u0431\u043b\u043e\u043a\u0438\u0440\u043e\u0432\u0430\u043d",
+    pointsButton: "\u0411\u0430\u043b\u043b\u044b",
+    block: "\u0417\u0430\u0431\u043b\u043e\u043a\u0438\u0440\u043e\u0432\u0430\u0442\u044c",
+    unblock: "\u0420\u0430\u0437\u0431\u043b\u043e\u043a\u0438\u0440\u043e\u0432\u0430\u0442\u044c",
+    loadingNumbers: "\u0417\u0430\u0433\u0440\u0443\u0436\u0430\u0435\u043c \u043d\u043e\u043c\u0435\u0440\u0430...",
+    noNumbersInStatus: "\u0412 \u044d\u0442\u043e\u043c \u0441\u0442\u0430\u0442\u0443\u0441\u0435 \u043d\u043e\u043c\u0435\u0440\u043e\u0432 \u043f\u043e\u043a\u0430 \u043d\u0435\u0442.",
+    approvedComplaints: "\u043e\u0434\u043e\u0431\u0440\u0435\u043d\u043d\u044b\u0445 \u0436\u0430\u043b\u043e\u0431",
+    selectNumber: "\u0412\u044b\u0431\u0435\u0440\u0438\u0442\u0435 \u043d\u043e\u043c\u0435\u0440",
+    selectNumberText: "\u0417\u0434\u0435\u0441\u044c \u043f\u043e\u044f\u0432\u044f\u0442\u0441\u044f \u0441\u0442\u0430\u0442\u0443\u0441, \u0436\u0430\u043b\u043e\u0431\u044b \u0438 \u0434\u0435\u0439\u0441\u0442\u0432\u0438\u0435 \u043f\u043e\u0434\u0442\u0432\u0435\u0440\u0436\u0434\u0435\u043d\u0438\u044f.",
+    closeNumber: "\u0417\u0430\u043a\u0440\u044b\u0442\u044c \u043d\u043e\u043c\u0435\u0440",
+    schemeTypes: "\u0422\u0438\u043f\u044b \u0441\u0445\u0435\u043c",
+    noApprovedReports: "\u041f\u043e\u043a\u0430 \u043d\u0435\u0442 \u043e\u0434\u043e\u0431\u0440\u0435\u043d\u043d\u044b\u0445 \u0436\u0430\u043b\u043e\u0431",
+    latestComplaint: "\u041f\u043e\u0441\u043b\u0435\u0434\u043d\u044f\u044f \u0436\u0430\u043b\u043e\u0431\u0430",
+    noData: "\u041d\u0435\u0442 \u0434\u0430\u043d\u043d\u044b\u0445",
+    latestNumberReports: "\u041f\u043e\u0441\u043b\u0435\u0434\u043d\u0438\u0435 \u0437\u0430\u044f\u0432\u043a\u0438 \u043f\u043e \u043d\u043e\u043c\u0435\u0440\u0443",
+    noReportsYet: "\u0417\u0430\u044f\u0432\u043e\u043a \u043f\u043e\u043a\u0430 \u043d\u0435\u0442.",
+    targetType: "Объект заявки",
+    targetTypes: {
+      phone: "Телефонный номер",
+      url: "Сайт или ссылка",
+      account: "Аккаунт / мессенджер",
+      card: "Карта или счёт",
+      other: "Другое",
+    },
+    quickDecision: "Быстрое решение",
+    approveSuspicious: "Одобрить как подозрительный",
+    approveVerified: "Одобрить и подтвердить мошенника",
+    rejectSpam: "Отклонить как спам/дубль",
+    moderatorNote: "Комментарий будет виден заявителю в профиле.",
+  },
+  uz: {
+    tabReports: "Arizalar",
+    tabLessons: "Darslar",
+    tabUsers: "Foydalanuvchilar",
+    citizenReports: "Fuqarolar arizalari",
+    numberRegistry: "Raqamlar reyestri",
+    contentManagement: "Kontentni boshqarish",
+    lessonImport: "JSON dars importi",
+    lessonImportText:
+      "Darsni yagona JSON formatida yuklang. Qayta yuklash darsni dublikatlarsiz yangilaydi.",
+    lessonJsonFile: "Dars JSON fayli",
+    chooseLessonJson: "Dars JSON faylini tanlang.",
+    importing: "Yuklanmoqda...",
+    importLesson: "Darsni import qilish",
+    selectedFile: "Tanlangan fayl:",
+    lessonCreated: "Dars yaratildi",
+    lessonUpdated: "Dars yangilandi",
+    blocks: "blok",
+    tasks: "topshiriq",
+    questions: "savol",
+    coursesLessons: "Kurslar va darslar",
+    contentManagerText: "Darslarni ko'rish, JSON yuklab olish va o'chirish.",
+    loadingCourses: "Kurslar yuklanmoqda...",
+    noCourses: "Hozircha kurslar topilmadi.",
+    lessons: "dars",
+    published: "e'lon qilingan",
+    hidden: "yashirilgan",
+    noModule: "Modulsiz",
+    open: "Ochish",
+    delete: "O'chirish",
+    deleteLessonConfirm: "\"{title}\" darsini o'chirasizmi? Bu amalni bekor qilib bo'lmaydi.",
+    userManagement: "Foydalanuvchilarni boshqarish",
+    platformUsers: "Platforma foydalanuvchilari",
+    userManagementText:
+      "Administrator foydalanuvchi roli, akkaunt faolligi va ballarini o'zgartira oladi. O'z akkauntingizni pasaytirish yoki o'chirish mumkin emas.",
+    searchByName: "Ism bo'yicha qidirish",
+    allRoles: "Barcha rollar",
+    citizens: "Fuqarolar",
+    moderators: "Moderatorlar",
+    admins: "Adminlar",
+    loadingUsers: "Foydalanuvchilar yuklanmoqda...",
+    noUsers: "Foydalanuvchilar topilmadi.",
+    noName: "Ismsiz",
+    pointsShort: "ball",
+    active: "faol",
+    blocked: "bloklangan",
+    pointsButton: "Ballar",
+    block: "Bloklash",
+    unblock: "Blokdan chiqarish",
+    loadingNumbers: "Raqamlar yuklanmoqda...",
+    noNumbersInStatus: "Bu holatda raqamlar hozircha yo'q.",
+    approvedComplaints: "tasdiqlangan shikoyat",
+    selectNumber: "Raqamni tanlang",
+    selectNumberText: "Bu yerda holat, shikoyatlar va tasdiqlash amali ko'rsatiladi.",
+    closeNumber: "Raqamni yopish",
+    schemeTypes: "Sxema turlari",
+    noApprovedReports: "Hozircha tasdiqlangan shikoyatlar yo'q",
+    latestComplaint: "Oxirgi shikoyat",
+    noData: "Ma'lumot yo'q",
+    latestNumberReports: "Raqam bo'yicha oxirgi arizalar",
+    noReportsYet: "Hozircha arizalar yo'q.",
+    targetType: "Ariza obyekti",
+    targetTypes: {
+      phone: "Telefon raqami",
+      url: "Sayt yoki havola",
+      account: "Akkaunt / messenjer",
+      card: "Karta yoki hisob",
+      other: "Boshqa",
+    },
+    quickDecision: "Tezkor qaror",
+    approveSuspicious: "Shubhali sifatida tasdiqlash",
+    approveVerified: "Tasdiqlash va firibgar raqam qilish",
+    rejectSpam: "Spam/dublikat sifatida rad etish",
+    moderatorNote: "Izoh arizachiga profilida ko'rinadi.",
+  },
+} as const;
 
 export default function ModerationPage() {
   const { user, loading } = useAuth();
@@ -73,12 +230,19 @@ export default function ModerationPage() {
   const [courseContent, setCourseContent] = useState<AdminCourseContent[]>([]);
   const [selectedCourseId, setSelectedCourseId] = useState("");
   const [contentBusy, setContentBusy] = useState(false);
+  const [adminUsers, setAdminUsers] = useState<AdminUser[]>([]);
+  const [userRoleFilter, setUserRoleFilter] = useState<UserRoleFilter>("all");
+  const [userSearch, setUserSearch] = useState("");
+  const [usersBusy, setUsersBusy] = useState(false);
+  const [usersError, setUsersError] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
 
   const canModerate =
     user?.role === "moderator" || user?.role === "admin";
   const canManageLessons = canModerate;
+  const canManageUsers = user?.role === "admin";
+  const mt = moderationLocalText[language];
   const regionLabels = Object.fromEntries(
     getRegions(language).map((region) => [region.value, region.label]),
   ) as Record<string, string>;
@@ -90,6 +254,14 @@ export default function ModerationPage() {
         : status === "suspicious"
           ? t("moderation.suspicious")
           : t("moderation.new");
+  const getReportTargetLabel = (report: ModerationReport) =>
+    report.target_type === "phone"
+      ? report.phone_full || report.target_value || report.phone_masked
+      : report.target_display || report.target_value;
+  const getNumberLabel = (number: ModerationNumber) =>
+    number.phone_full || number.phone_masked;
+  const getTargetTypeLabel = (targetType: ModerationReport["target_type"]) =>
+    mt.targetTypes[targetType];
   const getCalculatedNumberStatus = (
     approvedReports: number,
   ): ModerationNumber["status"] =>
@@ -164,26 +336,87 @@ export default function ModerationPage() {
     if (!loading && activeTab === "lessons") loadCourseContent();
   }, [activeTab, loadCourseContent, loading]);
 
-  const moderate = async (status: "approved" | "rejected") => {
+  const loadAdminUsers = useCallback(async () => {
+    if (!canManageUsers) return;
+    setUsersBusy(true);
+    setUsersError("");
+    try {
+      const params = new URLSearchParams();
+      if (userRoleFilter !== "all") params.set("role", userRoleFilter);
+      if (userSearch.trim()) params.set("search", userSearch.trim());
+      const query = params.toString();
+      const users = await api<AdminUser[]>(
+        `/auth/admin/users/${query ? `?${query}` : ""}`,
+        { auth: true },
+      );
+      setAdminUsers(users);
+    } catch (requestError) {
+      setUsersError((requestError as Error).message);
+    } finally {
+      setUsersBusy(false);
+    }
+  }, [canManageUsers, userRoleFilter, userSearch]);
+
+  useEffect(() => {
+    if (!loading && activeTab === "users") loadAdminUsers();
+  }, [activeTab, loadAdminUsers, loading]);
+
+  const updateAdminUser = async (
+    target: AdminUser,
+    payload: Partial<Pick<AdminUser, "role" | "points" | "is_active">>,
+  ) => {
+    setUsersBusy(true);
+    setUsersError("");
+    try {
+      const updated = await api<AdminUser>(`/auth/admin/users/${target.id}/`, {
+        method: "PATCH",
+        auth: true,
+        body: JSON.stringify(payload),
+      });
+      setAdminUsers((current) =>
+        current.map((item) => (item.id === updated.id ? updated : item)),
+      );
+    } catch (requestError) {
+      setUsersError((requestError as Error).message);
+    } finally {
+      setUsersBusy(false);
+    }
+  };
+
+  const moderate = async (
+    status: "approved" | "rejected",
+    options: { verifyNumber?: boolean; fallbackComment?: string } = {},
+  ) => {
     if (!selected) return;
-    if (status === "rejected" && comment.trim().length < 5) {
+    const moderatorComment = comment.trim() || options.fallbackComment || "";
+    if (status === "rejected" && moderatorComment.length < 5) {
       setError(t("moderation.rejectReason"));
       return;
     }
     setBusy(true);
     setError("");
     try {
-      await api(
+      const updatedReport = await api<ModerationReport>(
         `/scammer-db/moderation/reports/${selected.id}/`,
         {
           method: "PATCH",
           auth: true,
           body: JSON.stringify({
             status,
-            moderator_comment: comment.trim(),
+            moderator_comment: moderatorComment,
           }),
         },
       );
+      if (options.verifyNumber && updatedReport.number_id) {
+        await api(
+          `/scammer-db/moderation/numbers/${updatedReport.number_id}/verification/`,
+          {
+            method: "PATCH",
+            auth: true,
+            body: JSON.stringify({ verified: true }),
+          },
+        );
+      }
       setSelected(null);
       setComment("");
       await loadData();
@@ -202,6 +435,7 @@ export default function ModerationPage() {
           approvedReports: selectedNumber.approved_reports_count,
         }
       : selected
+        && selected.number_id
         ? {
             id: selected.number_id,
             verified: selected.number_verified,
@@ -272,7 +506,7 @@ export default function ModerationPage() {
 
   const importLessonJson = async () => {
     if (!lessonFile) {
-      setLessonImportError("Выберите JSON-файл урока.");
+      setLessonImportError(mt.chooseLessonJson);
       return;
     }
     setLessonImportBusy(true);
@@ -320,9 +554,7 @@ export default function ModerationPage() {
   };
 
   const deleteLesson = async (lesson: AdminLesson) => {
-    const confirmed = window.confirm(
-      `Удалить урок "${lesson.title}"? Это действие нельзя отменить.`,
-    );
+    const confirmed = window.confirm(mt.deleteLessonConfirm.replace("{title}", lesson.title));
     if (!confirmed) return;
     setContentBusy(true);
     setLessonImportError("");
@@ -408,14 +640,22 @@ export default function ModerationPage() {
             className={activeTab === "reports" ? "active" : ""}
             onClick={() => setActiveTab("reports")}
           >
-            <Gavel size={17} /> Заявки
+            <Gavel size={17} /> {mt.tabReports}
           </button>
           <button
             className={activeTab === "lessons" ? "active" : ""}
             onClick={() => setActiveTab("lessons")}
           >
-            <BookOpenText size={17} /> Уроки
+            <BookOpenText size={17} /> {mt.tabLessons}
           </button>
+          {canManageUsers && (
+            <button
+              className={activeTab === "users" ? "active" : ""}
+              onClick={() => setActiveTab("users")}
+            >
+              <Users size={17} /> {mt.tabUsers}
+            </button>
+          )}
         </div>
 
         {activeTab === "reports" && summary && (
@@ -465,7 +705,7 @@ export default function ModerationPage() {
                   setSelectedNumber(null);
                 }}
               >
-                {panel === "reports" ? "Заявки граждан" : "Реестр номеров"}
+                {panel === "reports" ? mt.citizenReports : mt.numberRegistry}
               </button>
             ))}
             <span className="moderation-filter-divider" />
@@ -520,17 +760,14 @@ export default function ModerationPage() {
           <section className="moderation-admin-panel">
             <div className="admin-panel-head">
               <span>
-                <BookOpenText size={18} /> Управление контентом
+                <BookOpenText size={18} /> {mt.contentManagement}
               </span>
-              <strong>Импорт JSON-урока</strong>
-              <p>
-                Загрузите один JSON-файл урока в унифицированном формате.
-                Повторная загрузка обновит урок без дублей.
-              </p>
+              <strong>{mt.lessonImport}</strong>
+              <p>{mt.lessonImportText}</p>
             </div>
             <div className="lesson-import-box">
               <label>
-                JSON-файл урока
+                {mt.lessonJsonFile}
                 <input
                   accept="application/json,.json"
                   type="file"
@@ -547,12 +784,12 @@ export default function ModerationPage() {
                 onClick={importLessonJson}
               >
                 <UploadCloud size={17} />
-                {lessonImportBusy ? "Загружаем..." : "Импортировать урок"}
+                {lessonImportBusy ? mt.importing : mt.importLesson}
               </button>
             </div>
             {lessonFile && (
               <div className="admin-file-note">
-                Выбран файл: <strong>{lessonFile.name}</strong>
+                {mt.selectedFile} <strong>{lessonFile.name}</strong>
               </div>
             )}
             {lessonImportError && (
@@ -562,17 +799,9 @@ export default function ModerationPage() {
               <div className="admin-import-result">
                 <CheckCircle2 size={18} />
                 <div>
-                  <strong>
-                    Урок{" "}
-                    {lessonImportResult.status === "created"
-                      ? "создан"
-                      : "обновлён"}
-                  </strong>
+                  <strong>{lessonImportResult.status === "created" ? mt.lessonCreated : mt.lessonUpdated}</strong>
                   <p>
-                    slug: {lessonImportResult.lesson_slug} · блоков:{" "}
-                    {lessonImportResult.blocks_count} · заданий:{" "}
-                    {lessonImportResult.tasks_count} · вопросов:{" "}
-                    {lessonImportResult.questions_count}
+                    slug: {lessonImportResult.lesson_slug} · {mt.blocks}: {lessonImportResult.blocks_count} · {mt.tasks}: {lessonImportResult.tasks_count} · {mt.questions}: {lessonImportResult.questions_count}
                   </p>
                 </div>
               </div>
@@ -580,26 +809,26 @@ export default function ModerationPage() {
             <div className="content-manager">
               <div className="content-manager-head">
                 <div>
-                  <strong>Курсы и уроки</strong>
-                  <p>Просмотр, скачивание JSON и удаление уроков.</p>
+                  <strong>{mt.coursesLessons}</strong>
+                  <p>{mt.contentManagerText}</p>
                 </div>
                 <button
                   className="button button-ghost button-small"
                   disabled={contentBusy}
                   onClick={loadCourseContent}
                 >
-                  <RefreshCw size={15} /> Обновить
+                  <RefreshCw size={15} /> {t("moderation.refresh")}
                 </button>
               </div>
 
               {contentBusy && courseContent.length === 0 ? (
                 <div className="loading-card">
-                  <span className="loader" /> Загружаем курсы...
+                  <span className="loader" /> {mt.loadingCourses}
                 </div>
               ) : courseContent.length === 0 ? (
                 <div className="panel-empty moderation-empty">
                   <BookOpenText />
-                  <p>Курсы пока не найдены.</p>
+                  <p>{mt.noCourses}</p>
                 </div>
               ) : (
                 <div className="content-manager-grid">
@@ -612,8 +841,8 @@ export default function ModerationPage() {
                       >
                         <strong>{course.title}</strong>
                         <span>
-                          {course.level} · {course.lessons_count} уроков ·{" "}
-                          {course.is_published ? "опубликован" : "скрыт"}
+                          {course.level} · {course.lessons_count} {mt.lessons} ·{" "}
+                          {course.is_published ? mt.published : mt.hidden}
                         </span>
                       </button>
                     ))}
@@ -624,7 +853,7 @@ export default function ModerationPage() {
                       <article key={lesson.id}>
                         <div>
                           <span>
-                            #{lesson.order} · {lesson.module_title || "Без модуля"}
+                            #{lesson.order} · {lesson.module_title || mt.noModule}
                           </span>
                           <strong>{lesson.title}</strong>
                           <p>{lesson.summary}</p>
@@ -634,7 +863,7 @@ export default function ModerationPage() {
                             className="button button-ghost button-small"
                             href={`/courses/${selectedCourse.id}/lessons/${lesson.id}`}
                           >
-                            <ExternalLink size={15} /> Открыть
+                            <ExternalLink size={15} /> {mt.open}
                           </Link>
                           <button
                             className="button button-ghost button-small"
@@ -647,7 +876,7 @@ export default function ModerationPage() {
                             disabled={contentBusy}
                             onClick={() => deleteLesson(lesson)}
                           >
-                            <Trash2 size={15} /> Удалить
+                            <Trash2 size={15} /> {mt.delete}
                           </button>
                         </div>
                       </article>
@@ -656,6 +885,132 @@ export default function ModerationPage() {
                 </div>
               )}
             </div>
+          </section>
+        )}
+
+        {activeTab === "users" && canManageUsers && (
+          <section className="moderation-admin-panel">
+            <div className="admin-panel-head">
+              <span>
+                <Users size={18} /> {mt.userManagement}
+              </span>
+              <strong>{mt.platformUsers}</strong>
+              <p>{mt.userManagementText}</p>
+            </div>
+
+            <div className="admin-users-toolbar">
+              <input
+                value={userSearch}
+                onChange={(event) => setUserSearch(event.target.value)}
+                placeholder={mt.searchByName}
+              />
+              <select
+                value={userRoleFilter}
+                onChange={(event) =>
+                  setUserRoleFilter(event.target.value as UserRoleFilter)
+                }
+              >
+                <option value="all">{mt.allRoles}</option>
+                <option value="citizen">{mt.citizens}</option>
+                <option value="moderator">{mt.moderators}</option>
+                <option value="admin">{mt.admins}</option>
+              </select>
+              <button
+                className="button button-ghost button-small"
+                disabled={usersBusy}
+                onClick={loadAdminUsers}
+              >
+                <RefreshCw size={15} /> {t("moderation.refresh")}
+              </button>
+            </div>
+
+            {usersError && <div className="form-error">{usersError}</div>}
+
+            {usersBusy && adminUsers.length === 0 ? (
+              <div className="loading-card">
+                <span className="loader" /> {mt.loadingUsers}
+              </div>
+            ) : adminUsers.length === 0 ? (
+              <div className="panel-empty moderation-empty">
+                <Users />
+                <p>{mt.noUsers}</p>
+              </div>
+            ) : (
+              <div className="admin-users-table">
+                {adminUsers.map((managedUser) => (
+                  <article key={managedUser.id}>
+                    <div className="admin-user-main">
+                      <strong>{managedUser.full_name || mt.noName}</strong>
+                      <span>{managedUser.phone_masked}</span>
+                      <small>
+                        #{managedUser.rank} · {managedUser.points} {mt.pointsShort} ·{" "}
+                        {managedUser.is_active ? mt.active : mt.blocked}
+                      </small>
+                    </div>
+                    <select
+                      value={managedUser.role}
+                      disabled={usersBusy}
+                      onChange={(event) =>
+                        updateAdminUser(managedUser, {
+                          role: event.target.value as AdminUser["role"],
+                        })
+                      }
+                    >
+                      <option value="citizen">{mt.citizens}</option>
+                      <option value="moderator">{mt.moderators}</option>
+                      <option value="admin">{mt.admins}</option>
+                    </select>
+                    <input
+                      type="number"
+                      min={0}
+                      value={managedUser.points}
+                      disabled={usersBusy}
+                      onChange={(event) =>
+                        setAdminUsers((current) =>
+                          current.map((item) =>
+                            item.id === managedUser.id
+                              ? {
+                                  ...item,
+                                  points: Math.max(
+                                    0,
+                                    Number(event.target.value) || 0,
+                                  ),
+                                }
+                              : item,
+                          ),
+                        )
+                      }
+                    />
+                    <button
+                      className="button button-ghost button-small"
+                      disabled={usersBusy}
+                      onClick={() =>
+                        updateAdminUser(managedUser, {
+                          points: managedUser.points,
+                        })
+                      }
+                    >
+                      <Save size={15} /> {mt.pointsButton}
+                    </button>
+                    <button
+                      className={
+                        managedUser.is_active
+                          ? "button button-danger button-small"
+                          : "button button-ghost button-small"
+                      }
+                      disabled={usersBusy}
+                      onClick={() =>
+                        updateAdminUser(managedUser, {
+                          is_active: !managedUser.is_active,
+                        })
+                      }
+                    >
+                      {managedUser.is_active ? mt.block : mt.unblock}
+                    </button>
+                  </article>
+                ))}
+              </div>
+            )}
           </section>
         )}
 
@@ -668,7 +1023,7 @@ export default function ModerationPage() {
               </div>
             ) : reportPanel === "numbers" && busy && numbers.length === 0 ? (
               <div className="loading-card">
-                <span className="loader" /> Загружаем номера...
+                <span className="loader" /> {mt.loadingNumbers}
               </div>
             ) : reportPanel === "reports" && reports.length === 0 ? (
               <div className="panel-empty moderation-empty">
@@ -678,7 +1033,7 @@ export default function ModerationPage() {
             ) : reportPanel === "numbers" && numbers.length === 0 ? (
               <div className="panel-empty moderation-empty">
                 <BadgeCheck />
-                <p>В этом статусе номеров пока нет.</p>
+                <p>{mt.noNumbersInStatus}</p>
               </div>
             ) : reportPanel === "reports" ? (
               reports.map((report) => (
@@ -700,7 +1055,7 @@ export default function ModerationPage() {
                     <AlertTriangle />
                   </span>
                   <div>
-                    <strong>{report.phone_masked}</strong>
+                    <strong>{getReportTargetLabel(report)}</strong>
                     <p>{getScamLabel(report.scam_type, language)}</p>
                     <small>
                       #{report.id.slice(0, 8)} ·{" "}
@@ -745,10 +1100,10 @@ export default function ModerationPage() {
                     <BadgeCheck />
                   </span>
                   <div>
-                    <strong>{number.phone_masked}</strong>
+                    <strong>{getNumberLabel(number)}</strong>
                     <p>{getNumberStatusLabel(number.status)}</p>
                     <small>
-                      {number.approved_reports_count} одобренных жалоб
+                      {number.approved_reports_count} {mt.approvedComplaints}
                       {number.last_reported_at
                         ? ` · ${new Date(number.last_reported_at).toLocaleDateString(
                             language === "uz" ? "uz-UZ" : "ru-RU",
@@ -784,19 +1139,15 @@ export default function ModerationPage() {
             ) : reportPanel === "numbers" && !selectedNumber ? (
               <div className="moderation-placeholder">
                 <BadgeCheck />
-                <h2>Выберите номер</h2>
-                <p>Здесь появятся статус, жалобы и действие подтверждения.</p>
+                <h2>{mt.selectNumber}</h2>
+                <p>{mt.selectNumberText}</p>
               </div>
             ) : reportPanel === "reports" && selected ? (
               <>
                 <div className="moderation-detail-head">
                   <div>
-                    <span className="eyebrow">
-                      {t("moderation.report", {
-                        id: selected.id.slice(0, 8),
-                      })}
-                    </span>
-                    <h2>{selected.phone_masked}</h2>
+                    <span className="eyebrow">{mt.numberRegistry}</span>
+                    <h2>{getReportTargetLabel(selected)}</h2>
                   </div>
                   <button
                     className="detail-close"
@@ -807,18 +1158,32 @@ export default function ModerationPage() {
                   </button>
                 </div>
 
-                <div className="number-state">
-                  <div>
-                    <span>{t("moderation.numberStatus")}</span>
-                    <strong>{getNumberStatusLabel(selected.number_status)}</strong>
+                {selected.number_id && (
+                  <div className="number-state">
+                    <div>
+                      <span>{t("moderation.numberStatus")}</span>
+                      <strong>
+                        {getNumberStatusLabel(
+                          selected.number_status as ModerationNumber["status"],
+                        )}
+                      </strong>
+                    </div>
+                    <div>
+                      <span>{t("moderation.approvedReports")}</span>
+                      <strong>{selected.approved_reports_count}</strong>
+                    </div>
                   </div>
-                  <div>
-                    <span>{t("moderation.approvedReports")}</span>
-                    <strong>{selected.approved_reports_count}</strong>
-                  </div>
-                </div>
+                )}
 
                 <dl className="report-facts">
+                  <div>
+                    <dt>{mt.targetType}</dt>
+                    <dd>{getTargetTypeLabel(selected.target_type)}</dd>
+                  </div>
+                  <div>
+                    <dt>{t("report.number")}</dt>
+                    <dd>{getReportTargetLabel(selected)}</dd>
+                  </div>
                   <div>
                     <dt>{t("moderation.scamType")}</dt>
                     <dd>
@@ -868,24 +1233,50 @@ export default function ModerationPage() {
                     maxLength={500}
                     placeholder={t("moderation.commentPlaceholder")}
                   />
+                  <small>{mt.moderatorNote}</small>
                 </label>
 
                 {selected.status === "pending" ? (
-                  <div className="moderation-actions">
+                  <div className="moderation-actions moderation-actions-quick">
+                    <span>{mt.quickDecision}</span>
                     <button
                       className="button moderation-reject"
                       disabled={busy}
-                      onClick={() => moderate("rejected")}
+                      onClick={() =>
+                        moderate("rejected", {
+                          fallbackComment:
+                            language === "uz"
+                              ? "Spam yoki dublikat ariza."
+                              : "Спам или дублирующая заявка.",
+                        })
+                      }
                     >
-                      <XCircle size={17} /> {t("moderation.reject")}
+                      <XCircle size={17} /> {mt.rejectSpam}
                     </button>
                     <button
                       className="button moderation-approve"
                       disabled={busy}
                       onClick={() => moderate("approved")}
                     >
-                      <Check size={17} /> {t("moderation.approve")}
+                      <Check size={17} /> {mt.approveSuspicious}
                     </button>
+                    {selected.number_id && (
+                      <button
+                        className="button button-danger moderation-verify-approve"
+                        disabled={busy}
+                        onClick={() =>
+                          moderate("approved", {
+                            verifyNumber: true,
+                            fallbackComment:
+                              language === "uz"
+                                ? "Moderator raqamni tasdiqlangan firibgar deb belgiladi."
+                                : "Модератор отметил номер как подтверждённый мошеннический.",
+                          })
+                        }
+                      >
+                        <BadgeCheck size={17} /> {mt.approveVerified}
+                      </button>
+                    )}
                   </div>
                 ) : (
                   <div className="decision-banner">
@@ -898,32 +1289,34 @@ export default function ModerationPage() {
                   </div>
                 )}
 
-                <button
-                  className={
-                    selected.number_verified
-                      ? "button button-ghost button-wide"
-                      : "button button-danger button-wide"
-                  }
-                  disabled={busy}
-                  onClick={toggleVerification}
-                >
-                  <BadgeCheck size={17} />
-                  {selected.number_verified
-                    ? t("moderation.unverify")
-                    : t("moderation.verify")}
-                </button>
+                {selected.number_id && (
+                  <button
+                    className={
+                      selected.number_verified
+                        ? "button button-ghost button-wide"
+                        : "button button-danger button-wide"
+                    }
+                    disabled={busy}
+                    onClick={toggleVerification}
+                  >
+                    <BadgeCheck size={17} />
+                    {selected.number_verified
+                      ? t("moderation.unverify")
+                      : t("moderation.verify")}
+                  </button>
+                )}
               </>
             ) : selectedNumber ? (
               <>
                 <div className="moderation-detail-head">
                   <div>
-                    <span className="eyebrow">Реестр номеров</span>
-                    <h2>{selectedNumber.phone_masked}</h2>
+                    <span className="eyebrow">{mt.numberRegistry}</span>
+                    <h2>{getNumberLabel(selectedNumber)}</h2>
                   </div>
                   <button
                     className="detail-close"
                     onClick={() => setSelectedNumber(null)}
-                    aria-label="Закрыть номер"
+                    aria-label={mt.closeNumber}
                   >
                     <X />
                   </button>
@@ -942,29 +1335,29 @@ export default function ModerationPage() {
 
                 <dl className="report-facts">
                   <div>
-                    <dt>Типы схем</dt>
+                    <dt>{mt.schemeTypes}</dt>
                     <dd>
                       {selectedNumber.scam_types.length
                         ? selectedNumber.scam_types
                             .map((type) => getScamLabel(type, language))
                             .join(", ")
-                        : "Пока нет одобренных жалоб"}
+                        : mt.noApprovedReports}
                     </dd>
                   </div>
                   <div>
-                    <dt>Последняя жалоба</dt>
+                    <dt>{mt.latestComplaint}</dt>
                     <dd>
                       {selectedNumber.last_reported_at
                         ? new Date(selectedNumber.last_reported_at).toLocaleDateString(
                             language === "uz" ? "uz-UZ" : "ru-RU",
                           )
-                        : "Нет данных"}
+                        : mt.noData}
                     </dd>
                   </div>
                 </dl>
 
                 <div className="report-story number-reports">
-                  <strong>Последние заявки по номеру</strong>
+                  <strong>{mt.latestNumberReports}</strong>
                   {selectedNumber.latest_reports.length ? (
                     <div className="number-report-list">
                       {selectedNumber.latest_reports.map((report) => (
@@ -978,7 +1371,7 @@ export default function ModerationPage() {
                       ))}
                     </div>
                   ) : (
-                    <p>Заявок пока нет.</p>
+                    <p>{mt.noReportsYet}</p>
                   )}
                 </div>
 

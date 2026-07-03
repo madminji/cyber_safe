@@ -2,6 +2,7 @@ export const translations = {
   ru: {
     "header.quiz": "Тест",
     "header.daily": "Тест дня",
+    "header.leaderboard": "Рейтинг",
     "header.courses": "Курсы",
     "header.games": "Игры",
     "header.simulator": "Симулятор",
@@ -17,7 +18,9 @@ export const translations = {
     "header.login": "Войти",
     "header.menu": "Открыть меню",
     "header.more": "Ещё",
-    "header.report": "Сообщить о номере",
+    "header.report": 
+      
+      "Сообщить о мошенничестве",
     "footer.description":
       "Национальная образовательная платформа цифровой безопасности граждан Узбекистана.",
     "footer.tools": "Инструменты",
@@ -260,6 +263,11 @@ export const translations = {
     "sim.callerUnknown": "Номер не определён",
     "sim.secureNotice": "Соединение не подтверждено",
     "sim.browserWarning": "Адрес сайта не подтверждён",
+    "sim.writeAnswerError": "\u041d\u0430\u043f\u0438\u0448\u0438\u0442\u0435 \u043e\u0442\u0432\u0435\u0442 \u0441\u043e\u0431\u0435\u0441\u0435\u0434\u043d\u0438\u043a\u0443.",
+    "sim.chatAnswerLabel": "\u0412\u0430\u0448 \u043e\u0442\u0432\u0435\u0442",
+    "sim.chatAnswerPlaceholder": "\u041d\u0430\u043f\u0438\u0448\u0438\u0442\u0435 \u0441\u043e\u043e\u0431\u0449\u0435\u043d\u0438\u0435 \u0441\u043e\u0431\u0435\u0441\u0435\u0434\u043d\u0438\u043a\u0443...",
+    "sim.sending": "\u041e\u0442\u043f\u0440\u0430\u0432\u043b\u044f\u0435\u043c...",
+    "sim.send": "\u041e\u0442\u043f\u0440\u0430\u0432\u0438\u0442\u044c",
     "account.loading": "Открываем кабинет...",
     "account.loginTitle": "Войдите в личный кабинет",
     "account.loginText": "Здесь хранятся ваши сертификаты, баллы и обращения.",
@@ -267,6 +275,7 @@ export const translations = {
     "account.user": "Пользователь CyberSafe",
     "account.verified": "Номер подтверждён",
     "account.points": "Баллов защиты",
+    "account.rank": "\u041c\u0435\u0441\u0442\u043e \u0432 \u0440\u0435\u0439\u0442\u0438\u043d\u0433\u0435",
     "account.certificates": "Сертификаты",
     "account.openDocuments": "Открыть документы",
     "account.newQuiz": "Новый тест",
@@ -275,14 +284,20 @@ export const translations = {
     "account.continueLearning": "Продолжить обучение",
     "account.simulator": "Симулятор",
     "account.repulseAttack": "Отразить атаку",
+    "account.dailyStreak": "\u0414\u043d\u0435\u0439 \u0441\u0435\u0440\u0438\u0438",
+    "account.todayCompleted": "\u0441\u0435\u0433\u043e\u0434\u043d\u044f \u043f\u0440\u043e\u0439\u0434\u0435\u043d",
+    "account.todayAvailable": "\u0441\u0435\u0433\u043e\u0434\u043d\u044f \u0434\u043e\u0441\u0442\u0443\u043f\u0435\u043d",
     "account.community": "Сообщество",
     "account.reports": "Мои жалобы",
     "account.checkNumber": "Проверить номер",
     "account.submitReport": "Подать заявку",
-    "account.noReports": "Вы ещё не отправляли жалобы на подозрительные номера.",
+    "account.noReports": 
+      
+      "Вы ещё не отправляли жалобы о мошенничестве.",
     "account.report": "Заявка #{id}",
     "account.submitted": "Подана",
     "account.comment": "Комментарий:",
+    "account.pendingReports": "\u0417\u0430\u044f\u0432\u043e\u043a \u043d\u0430 \u043f\u0440\u043e\u0432\u0435\u0440\u043a\u0435",
     "status.approved": "Одобрено",
     "status.rejected": "Отклонено",
     "status.pending": "На проверке",
@@ -299,6 +314,19 @@ export const translations = {
     "cert.level": "Уровень цифровой безопасности",
     "cert.issued": "Выдан",
     "cert.verify": "Проверить",
+    "cert.downloadError": "Не удалось скачать PDF.",
+    "cert.verifyLoading": "Проверяем сертификат...",
+    "cert.verifyLoadingText": "Пожалуйста, подождите несколько секунд.",
+    "cert.verifyEyebrow": "Проверка подлинности",
+    "cert.verifyMissingTitle": "Сертификат не найден",
+    "cert.verifyMissingText": "Мы не нашли сертификат с таким ID. Проверьте QR-код или ссылку.",
+    "cert.verifyHome": "На главную",
+    "cert.verifyValid": "Сертификат действителен",
+    "cert.verifyInvalid": "Сертификат недействителен",
+    "cert.verifyFoundText": "Этот сертификат найден в базе CyberSafe Uzbekistan. Сравните данные ниже с PDF-документом.",
+    "cert.owner": "Владелец",
+    "cert.result": "Результат",
+    "cert.certificateId": "ID сертификата",
     "numbers.eyebrow": "Общественная база",
     "numbers.title": "Проверьте номер телефона",
     "numbers.lead":
@@ -315,7 +343,9 @@ export const translations = {
     "numbers.confirmedReports": "Подтверждённых жалоб:",
     "numbers.noApproved":
       "Одобренных жалоб пока нет. Это не доказывает, что номер безопасен.",
-    "numbers.reportNumber": "Сообщить о номере",
+    "numbers.reportNumber": 
+      
+      "Сообщить о мошенничестве",
     "numbers.stories": "Подтверждённые истории",
     "numbers.warningTitle": "Номер не найден — не значит номер безопасен",
     "numbers.warningText":
@@ -338,24 +368,36 @@ export const translations = {
       "Авторизация защищает базу от анонимного спама. Ваш номер телефона не отображается в публичной заявке.",
     "report.loginButton": "Войти по номеру телефона",
     "report.registered": "Заявка зарегистрирована",
-    "report.sentTitle": "Номер отправлен на проверку",
+    "report.sentTitle": 
+      
+      "Заявка отправлена на проверку",
     "report.sentText":
       "Заявка #{id} получила статус «На модерации». Номер появится в публичной базе только после проверки модератором.",
-    "report.number": "Номер",
+    "report.number": 
+      
+      "Объект",
     "report.status": "Статус",
     "report.moderation": "На модерации",
     "report.my": "Мои заявки",
     "report.another": "Подать ещё одну",
     "report.eyebrow": "Заявка гражданина",
-    "report.title": "Сообщить о мошенническом номере",
+    "report.title": 
+      
+      "Сообщить о мошенничестве",
     "report.lead":
-      "Укажите, что произошло. После модерации подтверждённая жалоба повлияет на статус номера в публичной базе CyberSafe.",
+      
+      
+      "Укажите, что произошло: номер, ссылку, аккаунт, карту или другой подозрительный объект. После модерации телефонные жалобы учитываются в публичной базе номеров.",
     "report.step1Title": "Вы отправляете заявку",
-    "report.step1Text": "Номер сразу не публикуется.",
+    "report.step1Text": 
+      
+      "Заявка сразу не публикуется.",
     "report.step2Title": "Модератор проверяет сведения",
     "report.step2Text": "Дубли и спам отклоняются.",
     "report.step3Title": "База обновляется",
-    "report.step3Text": "Одобренная жалоба учитывается в статусе номера.",
+    "report.step3Text": 
+      
+      "Одобренная телефонная жалоба учитывается в статусе номера.",
     "report.privacy":
       "В публичной базе не показываются ваше имя и номер телефона. Не указывайте в описании паспортные данные, SMS-коды или пароли.",
     "report.details": "Данные о происшествии",
@@ -429,6 +471,7 @@ export const translations = {
   uz: {
     "header.quiz": "Test",
     "header.daily": "Kunlik test",
+    "header.leaderboard": "Reyting",
     "header.courses": "Kurslar",
     "header.games": "O‘yinlar",
     "header.simulator": "Simulyator",
@@ -444,7 +487,8 @@ export const translations = {
     "header.login": "Kirish",
     "header.menu": "Menyuni ochish",
     "header.more": "Yana",
-    "header.report": "Raqam haqida xabar berish",
+    "header.report": 
+      "Firibgarlik haqida xabar berish",
     "footer.description":
       "O‘zbekiston fuqarolari uchun raqamli xavfsizlik milliy ta’lim platformasi.",
     "footer.tools": "Vositalar",
@@ -684,6 +728,11 @@ export const translations = {
     "sim.callerUnknown": "Noma’lum raqam",
     "sim.secureNotice": "Ulanish tasdiqlanmagan",
     "sim.browserWarning": "Sayt manzili tasdiqlanmagan",
+    "sim.writeAnswerError": "Suhbatdoshga javob yozing.",
+    "sim.chatAnswerLabel": "Javobingiz",
+    "sim.chatAnswerPlaceholder": "Suhbatdoshga xabar yozing...",
+    "sim.sending": "Yuborilmoqda...",
+    "sim.send": "Yuborish",
     "account.loading": "Kabinet ochilmoqda...",
     "account.loginTitle": "Shaxsiy kabinetga kiring",
     "account.loginText": "Sertifikatlar, ballar va murojaatlaringiz shu yerda saqlanadi.",
@@ -691,6 +740,7 @@ export const translations = {
     "account.user": "CyberSafe foydalanuvchisi",
     "account.verified": "Raqam tasdiqlangan",
     "account.points": "Himoya ballari",
+    "account.rank": "Reytingdagi o‘rni",
     "account.certificates": "Sertifikatlar",
     "account.openDocuments": "Hujjatlarni ochish",
     "account.newQuiz": "Yangi test",
@@ -699,14 +749,19 @@ export const translations = {
     "account.continueLearning": "Ta’limni davom ettirish",
     "account.simulator": "Simulyator",
     "account.repulseAttack": "Hujumni qaytarish",
+    "account.dailyStreak": "Kunlik seriya",
+    "account.todayCompleted": "bugun bajarildi",
+    "account.todayAvailable": "bugun ochiq",
     "account.community": "Hamjamiyat",
     "account.reports": "Shikoyatlarim",
     "account.checkNumber": "Raqamni tekshirish",
     "account.submitReport": "Ariza yuborish",
-    "account.noReports": "Siz hali shubhali raqamlar haqida shikoyat yubormagansiz.",
+    "account.noReports": 
+      "Siz hali firibgarlik haqida shikoyat yubormagansiz.",
     "account.report": "Ariza #{id}",
     "account.submitted": "Yuborilgan",
     "account.comment": "Izoh:",
+    "account.pendingReports": "Kutilayotgan arizalar",
     "status.approved": "Tasdiqlangan",
     "status.rejected": "Rad etilgan",
     "status.pending": "Tekshiruvda",
@@ -722,6 +777,19 @@ export const translations = {
     "cert.level": "Raqamli xavfsizlik darajasi",
     "cert.issued": "Berilgan sana",
     "cert.verify": "Tekshirish",
+    "cert.downloadError": "PDF yuklab olinmadi.",
+    "cert.verifyLoading": "Sertifikat tekshirilmoqda...",
+    "cert.verifyLoadingText": "Iltimos, bir necha soniya kuting.",
+    "cert.verifyEyebrow": "Haqiqiylikni tekshirish",
+    "cert.verifyMissingTitle": "Sertifikat topilmadi",
+    "cert.verifyMissingText": "Bunday ID bilan sertifikat topilmadi. QR-kod yoki havolani tekshiring.",
+    "cert.verifyHome": "Bosh sahifaga",
+    "cert.verifyValid": "Sertifikat haqiqiy",
+    "cert.verifyInvalid": "Sertifikat haqiqiy emas",
+    "cert.verifyFoundText": "Bu sertifikat CyberSafe Uzbekistan bazasida topildi. Quyidagi ma’lumotlarni PDF hujjat bilan solishtiring.",
+    "cert.owner": "Egasi",
+    "cert.result": "Natija",
+    "cert.certificateId": "Sertifikat ID raqami",
     "numbers.eyebrow": "Ommaviy baza",
     "numbers.title": "Telefon raqamini tekshiring",
     "numbers.lead": "Boshqa foydalanuvchilarning tasdiqlangan shikoyatlari borligini biling.",
@@ -737,7 +805,8 @@ export const translations = {
     "numbers.confirmedReports": "Tasdiqlangan shikoyatlar:",
     "numbers.noApproved":
       "Hozircha tasdiqlangan shikoyatlar yo‘q. Bu raqam xavfsizligini isbotlamaydi.",
-    "numbers.reportNumber": "Raqam haqida xabar berish",
+    "numbers.reportNumber": 
+      "Firibgarlik haqida xabar berish",
     "numbers.stories": "Tasdiqlangan voqealar",
     "numbers.warningTitle": "Raqam topilmagani uning xavfsizligini anglatmaydi",
     "numbers.warningText":
@@ -758,24 +827,30 @@ export const translations = {
       "Avtorizatsiya bazani anonim spamdan himoya qiladi. Telefon raqamingiz ommaviy arizada ko‘rsatilmaydi.",
     "report.loginButton": "Telefon raqami bilan kirish",
     "report.registered": "Ariza ro‘yxatdan o‘tkazildi",
-    "report.sentTitle": "Raqam tekshiruvga yuborildi",
+    "report.sentTitle": 
+      "Ariza tekshiruvga yuborildi",
     "report.sentText":
       "#{id} arizaga «Moderatsiyada» holati berildi. Raqam faqat moderator tekshiruvidan keyin ommaviy bazada paydo bo‘ladi.",
-    "report.number": "Raqam",
+    "report.number": 
+      "Obyekt",
     "report.status": "Holat",
     "report.moderation": "Moderatsiyada",
     "report.my": "Arizalarim",
     "report.another": "Yana ariza yuborish",
     "report.eyebrow": "Fuqaro arizasi",
-    "report.title": "Firibgar raqam haqida xabar berish",
+    "report.title": 
+      "Firibgarlik haqida xabar berish",
     "report.lead":
-      "Nima sodir bo‘lganini ko‘rsating. Moderatsiyadan keyin tasdiqlangan shikoyat CyberSafe ommaviy bazasidagi raqam holatiga ta’sir qiladi.",
+      
+      "Nima sodir bo‘lganini ko‘rsating: raqam, havola, akkaunt, karta yoki boshqa shubhali obyekt. Moderatsiyadan keyin telefon bo‘yicha shikoyatlar ommaviy raqamlar bazasida hisobga olinadi.",
     "report.step1Title": "Siz ariza yuborasiz",
-    "report.step1Text": "Raqam darhol e’lon qilinmaydi.",
+    "report.step1Text": 
+      "Ariza darhol e’lon qilinmaydi.",
     "report.step2Title": "Moderator ma’lumotlarni tekshiradi",
     "report.step2Text": "Takroriy arizalar va spam rad etiladi.",
     "report.step3Title": "Baza yangilanadi",
-    "report.step3Text": "Tasdiqlangan shikoyat raqam holatida hisobga olinadi.",
+    "report.step3Text": 
+      "Tasdiqlangan telefon shikoyati raqam holatida hisobga olinadi.",
     "report.privacy":
       "Ommaviy bazada ism va telefon raqamingiz ko‘rsatilmaydi. Tavsifda pasport ma’lumotlari, SMS kodlari yoki parollarni yozmang.",
     "report.details": "Hodisa ma’lumotlari",

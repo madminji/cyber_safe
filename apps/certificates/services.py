@@ -14,6 +14,29 @@ from reportlab.pdfgen import canvas
 from reportlab.platypus import Paragraph
 
 
+RU_CERTIFICATE = "\u0421\u0415\u0420\u0422\u0418\u0424\u0418\u041a\u0410\u0422"
+RU_CONFIRM = (
+    "\u041d\u0430\u0441\u0442\u043e\u044f\u0449\u0438\u043c "
+    "\u043f\u043e\u0434\u0442\u0432\u0435\u0440\u0436\u0434\u0430\u0435\u0442\u0441\u044f, "
+    "\u0447\u0442\u043e"
+)
+RU_PASSED = (
+    "\u0443\u0441\u043f\u0435\u0448\u043d\u043e "
+    "\u043f\u0440\u043e\u0448\u0451\u043b(\u043b\u0430) "
+    "\u0442\u0435\u0441\u0442 \u043f\u043e "
+    "\u0446\u0438\u0444\u0440\u043e\u0432\u043e\u0439 "
+    "\u0431\u0435\u0437\u043e\u043f\u0430\u0441\u043d\u043e\u0441\u0442\u0438."
+)
+RU_RESULT = "\u0420\u0435\u0437\u0443\u043b\u044c\u0442\u0430\u0442"
+RU_LEVEL = "\u0423\u0440\u043e\u0432\u0435\u043d\u044c"
+RU_ISSUED_AT = "\u0414\u0430\u0442\u0430 \u0432\u044b\u0434\u0430\u0447\u0438"
+RU_QR_CHECK = (
+    "\u041f\u0440\u043e\u0432\u0435\u0440\u043a\u0430 "
+    "\u043f\u043e\u0434\u043b\u0438\u043d\u043d\u043e\u0441\u0442\u0438 "
+    "\u043f\u043e QR-\u043a\u043e\u0434\u0443"
+)
+
+
 def register_certificate_font():
     candidates = [
         Path("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"),
@@ -32,7 +55,7 @@ def build_certificate_pdf(certificate):
     pdf = canvas.Canvas(output, pagesize=(width, height))
     font = register_certificate_font()
     verification_url = (
-        f"{settings.PUBLIC_SITE_URL.rstrip('/')}/api/v1/certificates/{certificate.id}/"
+        f"{settings.PUBLIC_SITE_URL.rstrip('/')}/certificates/verify/{certificate.id}"
     )
 
     pdf.setFillColor(colors.HexColor("#F5F8FC"))
@@ -45,28 +68,33 @@ def build_certificate_pdf(certificate):
     pdf.setFont(font, 25)
     pdf.drawCentredString(width / 2, height - 105, "CyberSafe Uzbekistan")
     pdf.setFont(font, 16)
-    pdf.drawCentredString(width / 2, height - 145, "СЕРТИФИКАТ")
+    pdf.drawCentredString(width / 2, height - 145, f"{RU_CERTIFICATE} / SERTIFIKAT")
 
     style = ParagraphStyle(
         name="certificate",
         fontName=font,
-        fontSize=18,
-        leading=28,
+        fontSize=15,
+        leading=23,
         alignment=TA_CENTER,
         textColor=colors.HexColor("#0B1F3A"),
     )
     full_name = certificate.user.full_name or certificate.user.phone_masked
     body = Paragraph(
         (
-            f"Настоящим подтверждается, что<br/><b>{full_name}</b><br/>"
-            f"успешно прошёл(ла) тест по цифровой безопасности.<br/>"
-            f"Результат: <b>{certificate.score}%</b> · Уровень: "
-            f"<b>{certificate.level.upper()}</b>"
+            f"{RU_CONFIRM}<br/><b>{full_name}</b><br/>"
+            f"{RU_PASSED}<br/>"
+            f"{RU_RESULT}: <b>{certificate.score}%</b> \u00b7 "
+            f"{RU_LEVEL}: <b>{certificate.level.upper()}</b><br/><br/>"
+            f"Ushbu sertifikat<br/><b>{full_name}</b><br/>"
+            f"raqamli xavfsizlik bo\u2018yicha testni muvaffaqiyatli "
+            f"topshirganini tasdiqlaydi.<br/>"
+            f"Natija: <b>{certificate.score}%</b> \u00b7 "
+            f"Daraja: <b>{certificate.level.upper()}</b>"
         ),
         style,
     )
-    body.wrapOn(pdf, width - 180, 220)
-    body.drawOn(pdf, 90, height / 2 - 80)
+    body.wrapOn(pdf, width - 180, 260)
+    body.drawOn(pdf, 90, height / 2 - 110)
 
     qr_image = qrcode.make(verification_url)
     qr_buffer = BytesIO()
@@ -84,10 +112,17 @@ def build_certificate_pdf(certificate):
 
     pdf.setFont(font, 9)
     pdf.drawString(65, 88, f"ID: {certificate.id}")
-    pdf.drawString(65, 70, f"Дата выдачи: {certificate.issued_at:%d.%m.%Y}")
-    pdf.drawRightString(width - 65, 48, "Проверка подлинности по QR-коду")
+    pdf.drawString(
+        65,
+        70,
+        f"{RU_ISSUED_AT} / Berilgan sana: {certificate.issued_at:%d.%m.%Y}",
+    )
+    pdf.drawRightString(
+        width - 65,
+        48,
+        f"{RU_QR_CHECK} / QR-kod orqali tekshirish",
+    )
     pdf.showPage()
     pdf.save()
     output.seek(0)
     return output
-

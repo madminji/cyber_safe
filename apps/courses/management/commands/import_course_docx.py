@@ -7,6 +7,7 @@ from xml.etree import ElementTree
 from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
 
+from apps.courses.metadata import COURSE_LEVELS
 from apps.courses.models import Course, Lesson, LessonChoice, LessonQuestion
 
 
@@ -50,43 +51,6 @@ CLEAN_MODULE_TITLES = {
     9: "Инструменты платформы CyberSafe: анализатор, база номеров, репорты",
     10: "Действия при инциденте и итоговая сертификация",
 }
-
-COURSE_LEVELS = (
-    {
-        "slug": "cybersafe-basic",
-        "title": "CyberSafe Basic: базовая цифровая безопасность",
-        "description": (
-            "Первый уровень для ежедневной защиты: личные данные, фишинговые ссылки, "
-            "звонки из банка, SMS-коды, APK-файлы и базовые настройки телефона."
-        ),
-        "level": Course.Level.BASIC,
-        "orders": range(1, 9),
-        "order": 1,
-    },
-    {
-        "slug": "cybersafe-advanced",
-        "title": "CyberSafe Advanced: реальные схемы мошенничества",
-        "description": (
-            "Второй уровень про более сложные сценарии: покупки онлайн, поддельные "
-            "покупатели, фейковые выплаты, онлайн-займы, пирамиды, крипто-схемы, "
-            "пароли и двухфакторная защита."
-        ),
-        "level": Course.Level.ADVANCED,
-        "orders": range(9, 17),
-        "order": 2,
-    },
-    {
-        "slug": "cybersafe-expert",
-        "title": "CyberSafe Expert: инструменты, инциденты и личный план",
-        "description": (
-            "Финальный уровень: работа с анализатором, проверка номера, репорты, "
-            "действия после инцидента и личный план кибербезопасности."
-        ),
-        "level": Course.Level.EXPERT,
-        "orders": range(17, 21),
-        "order": 3,
-    },
-)
 
 SUPPLEMENTAL_LESSON_NOTES = {
     1: "Свежий акцент: современные мошенники чаще заставляют человека действовать быстро — нажать ссылку, назвать код, подтвердить перевод или установить приложение. Главное правило — остановиться, проверить источник и только потом принимать решение.",
@@ -502,10 +466,10 @@ class Command(BaseCommand):
             course, _ = Course.objects.update_or_create(
                 slug=level_config["slug"],
                 defaults={
-                    "title_ru": level_config["title"],
-                    "title_uz": level_config["title"],
-                    "description_ru": level_config["description"],
-                    "description_uz": level_config["description"],
+                    "title_ru": level_config["title_ru"],
+                    "title_uz": level_config["title_uz"],
+                    "description_ru": level_config["description_ru"],
+                    "description_uz": level_config["description_uz"],
                     "level": level_config["level"],
                     "duration_minutes": sum(
                         lesson.duration_minutes for lesson in selected_lessons

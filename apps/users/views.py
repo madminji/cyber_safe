@@ -1,17 +1,22 @@
 from django.conf import settings
 from drf_spectacular.utils import extend_schema
 from rest_framework import status
-from rest_framework.generics import GenericAPIView
+from rest_framework.generics import GenericAPIView, ListAPIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken, TokenError
 
+from apps.core.permissions import IsAdmin
+
 from .serializers import (
+    AdminUserSerializer,
+    LeaderboardEntrySerializer,
     LogoutSerializer,
     RequestOTPSerializer,
     UserSerializer,
     VerifyOTPSerializer,
 )
+from .models import User
 
 
 class RequestOTPView(GenericAPIView):
@@ -63,6 +68,66 @@ class MeView(GenericAPIView):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data)
+
+
+class AdminUserListView(ListAPIView):
+    permission_classes = [IsAdmin]
+    serializer_class = AdminUserSerializer
+
+    def get_queryset(self):
+        queryset = User.objects.order_by("-points", "date_joined")
+        role = self.request.query_params.get("role")
+        if role in User.Role.values:
+            queryset = queryset.filter(role=role)
+        search = self.request.query_params.get("search", "").strip()
+        if search:
+            queryset = queryset.filter(full_name__icontains=search)
+        return queryset
+
+
+class AdminUserDetailView(GenericAPIView):
+    permission_classes = [IsAdmin]
+    serializer_class = AdminUserSerializer
+
+    def get_object(self, user_id):
+        return User.objects.get(id=user_id)
+
+    def patch(self, request, user_id):
+        try:
+            user = self.get_object(user_id)
+        except User.DoesNotExist:
+            return Response({"detail": "User not found."}, status=404)
+        serializer = self.get_serializer(
+            user,
+            data=request.data,
+            partial=True,
+            context={"request": request},
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data)
+
+
+class LeaderboardView(GenericAPIView):
+    permission_classes = [AllowAny]
+    serializer_class = LeaderboardEntrySerializer
+
+    @extend_schema(operation_id="users_leaderboard")
+    def get(self, request):
+        users = User.objects.filter(is_active=True).order_by("-points", "date_joined")[
+            :50
+        ]
+        current_user_id = request.user.id if request.user.is_authenticated else None
+        rows = [
+            {
+                "rank": index,
+                "user_name": user.full_name or user.phone_masked,
+                "points": user.points,
+                "is_current_user": user.id == current_user_id,
+            }
+            for index, user in enumerate(users, start=1)
+        ]
+        return Response(self.get_serializer(rows, many=True).data)
 
 
 class LogoutView(GenericAPIView):

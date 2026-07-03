@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 
 import { useAuth } from "@/context/auth-context";
 import { useLanguage } from "@/context/language-context";
-import { API_URL, api } from "@/lib/api";
+import { api } from "@/lib/api";
 import { Certificate } from "@/lib/types";
 
 export default function CertificatesPage() {
@@ -15,6 +15,26 @@ export default function CertificatesPage() {
   const [certificates, setCertificates] = useState<Certificate[]>([]);
   const [busy, setBusy] = useState(true);
   const [error, setError] = useState("");
+
+  const downloadPdf = async (certificate: Certificate) => {
+    setError("");
+    try {
+      const access = localStorage.getItem("cybersafe_access");
+      const response = await fetch(certificate.pdf_url, {
+        headers: access ? { Authorization: `Bearer ${access}` } : {},
+      });
+      if (!response.ok) throw new Error(t("cert.downloadError"));
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `cybersafe-${certificate.id}.pdf`;
+      link.click();
+      URL.revokeObjectURL(url);
+    } catch (requestError) {
+      setError((requestError as Error).message);
+    }
+  };
 
   useEffect(() => {
     if (loading) return;
@@ -85,16 +105,15 @@ export default function CertificatesPage() {
                   )}
                 </small>
                 <div className="certificate-actions">
-                  <a
+                  <button
                     className="button button-primary button-small"
-                    href={`${API_URL}/certificates/${certificate.id}/pdf/`}
-                    target="_blank"
+                    onClick={() => downloadPdf(certificate)}
                   >
                     <Download size={16} /> PDF
-                  </a>
+                  </button>
                   <a
                     className="button button-ghost button-small"
-                    href={`${API_URL}/certificates/${certificate.id}/`}
+                    href={certificate.verification_url}
                     target="_blank"
                   >
                     <ExternalLink size={16} /> {t("cert.verify")}

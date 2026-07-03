@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 
 import { useAuth } from "@/context/auth-context";
 import { useLanguage } from "@/context/language-context";
@@ -40,10 +40,10 @@ const GameCanvas = dynamic(() => import("@/components/games/GameCanvas"), {
 
 const roleLabel = {
   ru: {
-    analyst: "Аналитик",
-    defender: "Защитник",
-    investigator: "Расследователь",
-    mentor: "Наставник",
+    analyst: "\u0410\u043d\u0430\u043b\u0438\u0442\u0438\u043a",
+    defender: "\u0417\u0430\u0449\u0438\u0442\u043d\u0438\u043a",
+    investigator: "\u0420\u0430\u0441\u0441\u043b\u0435\u0434\u043e\u0432\u0430\u0442\u0435\u043b\u044c",
+    mentor: "\u041d\u0430\u0441\u0442\u0430\u0432\u043d\u0438\u043a",
   },
   uz: {
     analyst: "Tahlilchi",
@@ -55,17 +55,73 @@ const roleLabel = {
 
 const difficultyLabel = {
   ru: {
-    easy: "Лёгкий",
-    medium: "Средний",
-    hard: "Сложный",
+    easy: "\u041b\u0451\u0433\u043a\u0438\u0439",
+    medium: "\u0421\u0440\u0435\u0434\u043d\u0438\u0439",
+    hard: "\u0421\u043b\u043e\u0436\u043d\u044b\u0439",
   },
   uz: {
     easy: "Oson",
-    medium: "O‘rta",
+    medium: "O\u2018rta",
     hard: "Qiyin",
   },
 } as const;
 
+const gameCopy = {
+  ru: {
+    eyebrow: "3D \u0438\u0433\u0440\u0430 \u043f\u043e \u0431\u0435\u0437\u043e\u043f\u0430\u0441\u043d\u043e\u0441\u0442\u0438",
+    title: "CyberSafe Missions",
+    lead: "\u041f\u0440\u043e\u0432\u0435\u0440\u044f\u0439\u0442\u0435 \u043f\u0440\u0438\u0437\u043d\u0430\u043a\u0438 \u0443\u0433\u0440\u043e\u0437 \u0432 3D-\u0441\u0446\u0435\u043d\u0435, \u043f\u0440\u0438\u043d\u0438\u043c\u0430\u0439\u0442\u0435 \u0431\u0435\u0437\u043e\u043f\u0430\u0441\u043d\u044b\u0435 \u0440\u0435\u0448\u0435\u043d\u0438\u044f \u0438 \u0437\u0430\u0440\u0430\u0431\u0430\u0442\u044b\u0432\u0430\u0439\u0442\u0435 \u043e\u0447\u043a\u0438 \u043a\u0438\u0431\u0435\u0440\u0437\u0430\u0449\u0438\u0442\u044b.",
+    guest: "\u0412 \u0433\u043e\u0441\u0442\u0435\u0432\u043e\u043c \u0440\u0435\u0436\u0438\u043c\u0435 \u043e\u0442\u043a\u0440\u044b\u0442 \u0442\u043e\u043b\u044c\u043a\u043e \u043e\u0434\u0438\u043d \u0441\u0446\u0435\u043d\u0430\u0440\u0438\u0439. \u041f\u043e\u0441\u043b\u0435 \u0432\u0445\u043e\u0434\u0430 \u043e\u0442\u043a\u0440\u043e\u044e\u0442\u0441\u044f \u0432\u0441\u0435 \u043c\u0438\u0441\u0441\u0438\u0438 \u0438 \u0440\u0435\u0439\u0442\u0438\u043d\u0433.",
+    chooseCharacter: "\u0412\u044b\u0431\u0435\u0440\u0438\u0442\u0435 \u043f\u0435\u0440\u0441\u043e\u043d\u0430\u0436\u0430",
+    chooseScenario: "\u0412\u044b\u0431\u0435\u0440\u0438\u0442\u0435 \u043c\u0438\u0441\u0441\u0438\u044e",
+    start: "\u041d\u0430\u0447\u0430\u0442\u044c",
+    mission: "\u041c\u0438\u0441\u0441\u0438\u044f",
+    score: "\u0421\u0447\u0451\u0442",
+    step: "\u0428\u0430\u0433",
+    difficulty: "\u0421\u043b\u043e\u0436\u043d\u043e\u0441\u0442\u044c",
+    leaderboard: "\u0420\u0435\u0439\u0442\u0438\u043d\u0433",
+    loginCta: "\u0412\u043e\u0439\u0434\u0438\u0442\u0435, \u0447\u0442\u043e\u0431\u044b \u0441\u043e\u0445\u0440\u0430\u043d\u0438\u0442\u044c \u0440\u0435\u0437\u0443\u043b\u044c\u0442\u0430\u0442",
+    completed: "\u041c\u0438\u0441\u0441\u0438\u044f \u0437\u0430\u0432\u0435\u0440\u0448\u0435\u043d\u0430",
+    points: "\u0431\u0430\u043b\u043b\u043e\u0432 \u043f\u043b\u0430\u0442\u0444\u043e\u0440\u043c\u044b",
+    again: "\u0418\u0433\u0440\u0430\u0442\u044c \u0441\u043d\u043e\u0432\u0430",
+    correct: "\u0412\u0435\u0440\u043d\u043e",
+    wrong: "\u041e\u0448\u0438\u0431\u043a\u0430",
+    auto: "\u0421\u043b\u043e\u0436\u043d\u043e\u0441\u0442\u044c \u0432\u044b\u0431\u0438\u0440\u0430\u0435\u0442\u0441\u044f \u0430\u0432\u0442\u043e\u043c\u0430\u0442\u0438\u0447\u0435\u0441\u043a\u0438",
+    currentTask: "\u0422\u0435\u043a\u0443\u0449\u0435\u0435 \u0437\u0430\u0434\u0430\u043d\u0438\u0435",
+    startHint: "\u041d\u0430\u0447\u043d\u0438\u0442\u0435 \u043c\u0438\u0441\u0441\u0438\u044e \u0438 \u0432\u044b\u0431\u0435\u0440\u0438\u0442\u0435 \u043e\u0431\u044a\u0435\u043a\u0442 \u0432 3D-\u0441\u0446\u0435\u043d\u0435.",
+    review: "\u0420\u0430\u0437\u0431\u043e\u0440 \u043c\u0438\u0441\u0441\u0438\u0438",
+    selected: "\u0412\u044b\u0431\u0440\u0430\u043d\u043e:",
+    expected: "\u041f\u0440\u0430\u0432\u0438\u043b\u044c\u043d\u044b\u0439 \u043e\u0442\u0432\u0435\u0442:",
+    noScores: "\u041f\u043e\u043a\u0430 \u043d\u0435\u0442 \u0440\u0435\u0437\u0443\u043b\u044c\u0442\u0430\u0442\u043e\u0432.",
+  },
+  uz: {
+    eyebrow: "3D xavfsizlik o\u2018yini",
+    title: "CyberSafe Missions",
+    lead: "3D sahnada tahdid belgilarini tekshiring, xavfsiz qarorlar qabul qiling va kiberhimoya ballarini to\u2018plang.",
+    guest: "Mehmon rejimida faqat bitta ssenariy ochiq. Kirgandan keyin barcha missiyalar va reyting ochiladi.",
+    chooseCharacter: "Personajni tanlang",
+    chooseScenario: "Missiyani tanlang",
+    start: "Boshlash",
+    mission: "Missiya",
+    score: "Ball",
+    step: "Qadam",
+    difficulty: "Qiyinlik",
+    leaderboard: "Reyting",
+    loginCta: "Natijani saqlash uchun kiring",
+    completed: "Missiya yakunlandi",
+    points: "platforma balli",
+    again: "Yana o\u2018ynash",
+    correct: "To\u2018g\u2018ri",
+    wrong: "Xato",
+    auto: "Qiyinlik avtomatik tanlanadi",
+    currentTask: "Joriy vazifa",
+    startHint: "Missiyani boshlang va 3D sahnadagi obyektni tanlang.",
+    review: "Missiya tahlili",
+    selected: "Tanlangan:",
+    expected: "To\u2018g\u2018ri javob:",
+    noScores: "Hali natijalar yo\u2018q.",
+  },
+} as const;
 export default function GamesPage() {
   const { user, loading: authLoading, reloadUser } = useAuth();
   const { language } = useLanguage();
@@ -83,65 +139,7 @@ export default function GamesPage() {
   const [busy, setBusy] = useState(true);
   const [error, setError] = useState("");
 
-  const copy = useMemo(
-    () =>
-      language === "uz"
-        ? {
-            eyebrow: "3D xavfsizlik o‘yini",
-            title: "CyberSafe Missions",
-            lead: "3D sahnada belgilarni tekshiring, xavfsiz qarorlar qabul qiling va kiberxavfsizlik ballarini to‘plang.",
-            guest: "Mehmon rejimida faqat bitta mashq ochiq. Kirgandan keyin barcha missiyalar va reyting ochiladi.",
-            chooseCharacter: "Personajni tanlang",
-            chooseScenario: "Missiyani tanlang",
-            start: "Boshlash",
-            mission: "Missiya",
-            score: "Ball",
-            step: "Qadam",
-            difficulty: "Qiyinlik",
-            leaderboard: "Reyting",
-            loginCta: "Natijani saqlash uchun kiring",
-            completed: "Missiya yakunlandi",
-            points: "platforma balli",
-            again: "Yana o‘ynash",
-            correct: "To‘g‘ri",
-            wrong: "Xato",
-            auto: "Qiyinlik avtomatik tanlanadi",
-            currentTask: "Joriy vazifa",
-            startHint: "Missiyani boshlang va obyektni tanlang.",
-            review: "Missiya tahlili",
-            selected: "Tanlangan:",
-            expected: "To‘g‘ri javob:",
-            noScores: "Hali natijalar yo‘q.",
-          }
-        : {
-            eyebrow: "3D игра по безопасности",
-            title: "CyberSafe Missions",
-            lead: "Проверяйте признаки угроз в 3D-сцене, принимайте безопасные решения и зарабатывайте очки киберзащиты.",
-            guest: "В гостевом режиме открыт только один сценарий. После входа откроются все миссии и рейтинг.",
-            chooseCharacter: "Выберите персонажа",
-            chooseScenario: "Выберите миссию",
-            start: "Начать",
-            mission: "Миссия",
-            score: "Счёт",
-            step: "Шаг",
-            difficulty: "Сложность",
-            leaderboard: "Рейтинг",
-            loginCta: "Войдите, чтобы сохранить результат",
-            completed: "Миссия завершена",
-            points: "баллов платформы",
-            again: "Играть снова",
-            correct: "Верно",
-            wrong: "Ошибка",
-            auto: "Сложность выбирается автоматически",
-            currentTask: "Текущее задание",
-            startHint: "Начните миссию и выберите объект в 3D-сцене.",
-            review: "Разбор миссии",
-            selected: "Выбрано:",
-            expected: "Правильный ответ:",
-            noScores: "Пока нет результатов.",
-          },
-    [language],
-  );
+  const copy = gameCopy[language];
 
   useEffect(() => {
     setBusy(true);

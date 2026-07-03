@@ -15,25 +15,38 @@ def find_number(phone):
 
 
 @transaction.atomic
-def create_report(*, user, phone, **report_data):
-    phone_fields = build_phone_fields(phone)
-    number, _ = ScammerNumber.objects.get_or_create(
-        phone_hash=phone_fields["phone_hash"],
-        defaults={
-            "phone_encrypted": phone_fields["phone_encrypted"],
-            "phone_masked": phone_fields["phone_masked"],
-        },
-    )
+def create_report(*, user, target_type, target_value, **report_data):
+    number = None
+    if target_type == CommunityReport.TargetType.PHONE:
+        phone_fields = build_phone_fields(target_value)
+        number, _ = ScammerNumber.objects.get_or_create(
+            phone_hash=phone_fields["phone_hash"],
+            defaults={
+                "phone_encrypted": phone_fields["phone_encrypted"],
+                "phone_masked": phone_fields["phone_masked"],
+            },
+        )
+        normalized_target = phone_fields["phone_masked"]
+    else:
+        normalized_target = target_value.strip()
+
     duplicate_after = timezone.now() - timedelta(hours=24)
-    if CommunityReport.objects.filter(
-        user=user,
-        scammer_number=number,
-        created_at__gte=duplicate_after,
-    ).exists():
-        raise ValidationError("You have already reported this number in the last 24 hours.")
+    duplicate_filter = {
+        "user": user,
+        "target_type": target_type,
+        "created_at__gte": duplicate_after,
+    }
+    if number:
+        duplicate_filter["scammer_number"] = number
+    else:
+        duplicate_filter["target_value__iexact"] = normalized_target
+    if CommunityReport.objects.filter(**duplicate_filter).exists():
+        raise ValidationError("You have already reported this target in the last 24 hours.")
     return CommunityReport.objects.create(
         user=user,
         scammer_number=number,
+        target_type=target_type,
+        target_value=normalized_target,
         **report_data,
     )
 
@@ -85,7 +98,8 @@ def moderate_report(*, report, moderator, status, moderator_comment=""):
             "updated_at",
         ]
     )
-    recalculate_number(locked_report.scammer_number)
+    if locked_report.scammer_number_id:
+        recalculate_number(locked_report.scammer_number)
     return locked_report
 
 

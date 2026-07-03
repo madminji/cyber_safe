@@ -10,6 +10,7 @@ import {
   LogIn,
   ShieldCheck,
   Star,
+  Trophy,
 } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -24,6 +25,7 @@ import { Certificate, Course, DailyQuizStatus } from "@/lib/types";
 type Report = {
   id: string;
   phone_masked: string;
+  target_display?: string;
   scam_type: string;
   status: "pending" | "approved" | "rejected";
   moderator_comment: string;
@@ -128,6 +130,16 @@ export default function AccountPage() {
               <p>{t("account.points")}</p>
             </div>
           </article>
+          <Link href="/leaderboard" className="metric-card">
+            <span className="metric-icon amber">
+              <Trophy />
+            </span>
+            <div>
+              <strong>#{user.rank}</strong>
+              <p>{t("account.rank")}</p>
+            </div>
+            <ChevronRight />
+          </Link>
           <Link href="/certificates" className="metric-card">
             <span className="metric-icon violet">
               <Award />
@@ -167,14 +179,10 @@ export default function AccountPage() {
             <div>
               <strong>{dailyStatus?.streak || 0}</strong>
               <p>
-                {language === "uz" ? "Kunlik seriya" : "Дней серии"} ·{" "}
+                {t("account.dailyStreak")} ·{" "}
                 {dailyStatus?.completed
-                  ? language === "uz"
-                    ? "bugun bajarildi"
-                    : "сегодня пройден"
-                  : language === "uz"
-                    ? "bugun ochiq"
-                    : "сегодня доступен"}
+                  ? t("account.todayCompleted")
+                  : t("account.todayAvailable")}
               </p>
             </div>
             <ChevronRight />
@@ -196,9 +204,7 @@ export default function AccountPage() {
             <div>
               <strong>{pendingReports}</strong>
               <p>
-                {language === "uz"
-                  ? "Kutilayotgan arizalar"
-                  : "Заявок на проверке"}
+                {t("account.pendingReports")}
               </p>
             </div>
           </article>
@@ -235,7 +241,7 @@ export default function AccountPage() {
                     <FileWarning />
                   </span>
                   <div>
-                    <strong>{report.phone_masked}</strong>
+                    <strong>{report.target_display || report.phone_masked}</strong>
                     <p>
                       {t("account.report", { id: report.id.slice(0, 8) })} ·{" "}
                       {getScamLabel(report.scam_type, language)}
@@ -276,3 +282,4 @@ export default function AccountPage() {
     </section>
   );
 }
+

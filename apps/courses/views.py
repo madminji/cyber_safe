@@ -48,7 +48,7 @@ def course_queryset(user):
     return Course.objects.filter(is_published=True).annotate(
         lessons_count=Count("lessons", filter=Q(lessons__is_published=True), distinct=True),
         completed_lessons=completed_lessons,
-    )
+    ).order_by("order", "title_ru")
 
 
 class CourseListView(GenericAPIView):

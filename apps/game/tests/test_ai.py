@@ -4,7 +4,12 @@ from unittest.mock import MagicMock, patch
 import pytest
 from django.test import override_settings
 
-from apps.game.ai import OpenRouterError, chat_completion, enrich_game_session
+from apps.game.ai import (
+    OpenRouterError,
+    chat_completion,
+    clean_simulation_message,
+    enrich_game_session,
+)
 from apps.game.models import GameScenario, GameSession
 from apps.users.models import User
 
@@ -43,6 +48,25 @@ def test_chat_completion_uses_openrouter_contract(mock_urlopen):
 def test_chat_completion_requires_configuration():
     with pytest.raises(OpenRouterError):
         chat_completion(messages=[{"role": "user", "content": "test"}])
+
+
+def test_simulation_message_filter_rejects_prompt_leak():
+    leaked = (
+        "We need to produce a short line in Russian as a natural reaction to "
+        "the trainee's reply."
+    )
+
+    with pytest.raises(OpenRouterError):
+        clean_simulation_message(leaked, language="ru")
+
+
+def test_simulation_message_filter_accepts_russian_chat_line():
+    message = clean_simulation_message(
+        "Это срочно, без приложения посылку вернут через 15 минут.",
+        language="ru",
+    )
+
+    assert message == "Это срочно, без приложения посылку вернут через 15 минут."
 
 
 @pytest.mark.django_db

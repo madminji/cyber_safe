@@ -39,6 +39,13 @@ class ScammerNumber(models.Model):
 
 
 class CommunityReport(models.Model):
+    class TargetType(models.TextChoices):
+        PHONE = "phone", "Phone number"
+        URL = "url", "Website or link"
+        ACCOUNT = "account", "Messenger or social account"
+        CARD = "card", "Card or bank account"
+        OTHER = "other", "Other"
+
     class ScamType(models.TextChoices):
         BANK_CALL = "bank_call", "Fake bank call"
         SMS_CODE = "sms_code", "SMS code theft"
@@ -64,8 +71,16 @@ class CommunityReport(models.Model):
     scammer_number = models.ForeignKey(
         ScammerNumber,
         related_name="reports",
+        null=True,
+        blank=True,
         on_delete=models.PROTECT,
     )
+    target_type = models.CharField(
+        max_length=20,
+        choices=TargetType.choices,
+        default=TargetType.PHONE,
+    )
+    target_value = models.CharField(max_length=300, blank=True)
     scam_type = models.CharField(max_length=30, choices=ScamType.choices)
     incident_date = models.DateField()
     story = models.TextField(max_length=1000)
@@ -102,5 +117,5 @@ class CommunityReport(models.Model):
         ]
 
     def __str__(self):
-        return f"{self.scammer_number.phone_masked} — {self.status}"
-
+        target = self.scammer_number.phone_masked if self.scammer_number else self.target_value
+        return f"{target} — {self.status}"

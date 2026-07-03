@@ -106,6 +106,8 @@ def verify_otp_challenge(*, challenge_id, phone, code):
             if not created and not user.is_verified:
                 user.is_verified = True
                 user.save(update_fields=["is_verified", "updated_at"])
+            if not user.is_active:
+                raise ValidationError("This account has been blocked by an administrator.")
 
     if invalid_code:
         raise ValidationError("Invalid or expired OTP challenge.")

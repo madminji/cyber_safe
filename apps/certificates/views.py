@@ -23,7 +23,7 @@ class CertificateDetailView(GenericAPIView):
 
 
 class CertificatePDFView(GenericAPIView):
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
     serializer_class = CertificateSerializer
 
     @extend_schema(operation_id="certificate_download_pdf")
@@ -35,6 +35,8 @@ class CertificatePDFView(GenericAPIView):
             )
         except Certificate.DoesNotExist:
             return Response({"detail": "Certificate not found."}, status=404)
+        if certificate.user_id != request.user.id and request.user.role != "admin":
+            return Response({"detail": "You cannot download this certificate."}, status=403)
         return FileResponse(
             build_certificate_pdf(certificate),
             as_attachment=True,
